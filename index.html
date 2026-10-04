@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cordme - Discord Web Clone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Whitney:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #313338;
+            color: #dbdee1;
+            user-select: none;
+        }
+        /* Custom scrollbars for Discord dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #2b2d31;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a1b1e;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #111214;
+        }
+        .tooltip {
+            visibility: hidden;
+            position: absolute;
+            z-index: 50;
+        }
+        .has-tooltip:hover .tooltip {
+            visibility: visible;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col">
+
+    <div id="auth-modal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+        <div class="bg-[#313338] w-full max-w-md rounded-lg shadow-2xl p-8 flex flex-col">
+            <div class="text-center mb-6">
+                <h2 id="auth-title" class="text-2xl font-bold text-white mb-2">Welcome back</h2>
+                <p id="auth-subtitle" class="text-sm text-[#949ba4]">We are excited to see you again!</p>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="auth-error" class="hidden bg-[#f23f43]/10 border border-[#f23f43] text-[#f23f43] p-3 rounded mb-4 text-sm font-medium"></div>
+
+            <form id="auth-form" class="flex flex-col gap-4">
+                <div id="username-field" class="hidden flex flex-col gap-2">
+                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Username</label>
+                    <input type="text" id="auth-username" class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none focus:ring-2 focus:ring-[#5865f2]" placeholder="CoolGamer99">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Email</label>
+                    <input type="email" id="auth-email" required class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none focus:ring-2 focus:ring-[#5865f2]" placeholder="user@cordme.com">
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Password</label>
+                    <input type="password" id="auth-password" required class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none focus:ring-2 focus:ring-[#5865f2]" placeholder="••••••••">
+                </div>
+
+                <button type="submit" id="auth-submit-btn" class="bg-[#5865f2] hover:bg-[#4752c4] text-white font-medium py-3 rounded transition duration-200 mt-2">Log In</button>
+            </form>
+
+            <div class="mt-4 text-sm text-[#949ba4] flex justify-between items-center">
+                <span id="auth-switch-text">Need an account?</span>
+                <button id="auth-switch-btn" class="text-[#00a8fc] hover:underline font-medium">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" class="hidden h-full w-full flex flex-row overflow-hidden">
+        
+        <!-- Servers Sidebar -->
+        <nav class="w-[72px] bg-[#1e1f22] flex flex-col items-center py-3 gap-2 shrink-0 select-none z-20">
+            <!-- Direct Messages / Home Button -->
+            <div class="relative group flex items-center justify-center w-full">
+                <div id="home-pill" class="absolute left-0 w-1 bg-white rounded-r transition-all duration-200 h-0 group-hover:h-5"></div>
+                <button onclick="switchServer('home')" class="w-12 h-12 bg-[#313338] hover:bg-[#5865f2] hover:rounded-2xl rounded-[24px] flex items-center justify-center text-white transition-all duration-200 group-hover:rounded-2xl">
+                    <i class="fa-solid fa-house text-xl"></i>
+                </button>
+                <div class="absolute left-[80px] bg-[#111214] text-white text-sm font-semibold px-3 py-1.5 rounded shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">Direct Messages</div>
+            </div>
+
+            <div class="w-8 h-[2px] bg-[#35363c] rounded"></div>
+
+            <!-- Dynamic Server List -->
+            <div id="server-list" class="flex flex-col gap-2 w-full items-center overflow-y-auto flex-1 max-h-[calc(100vh-200px)]">
+                <!-- Servers populated by JS -->
+            </div>
+
+            <!-- Add Server Button -->
+            <div class="relative group flex items-center justify-center w-full mt-auto">
+                <button onclick="openCreateServerModal()" class="w-12 h-12 bg-[#313338] hover:bg-[#23a55a] hover:text-white text-[#23a55a] hover:rounded-2xl rounded-[24px] flex items-center justify-center transition-all duration-200">
+                    <i class="fa-solid fa-plus text-xl"></i>
+                </button>
+                <div class="absolute left-[80px] bg-[#111214] text-white text-sm font-semibold px-3 py-1.5 rounded shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">Add a Server</div>
+            </div>
+        </nav>
+
+        <!-- Channels & DMs Sidebar -->
+        <div class="w-60 bg-[#2b2d31] flex flex-col shrink-0 select-none z-10 border-r border-[#1f2023]">
+            <!-- Header / Server Name -->
+            <div class="h-12 border-b border-[#1f2023] flex items-center justify-between px-4 shadow-sm font-bold text-white hover:bg-[#35373c] cursor-pointer">
+                <span id="current-context-name" class="truncate">Direct Messages</span>
+                <i id="context-header-icon" class="fa-solid fa-chevron-down text-xs text-[#949ba4]"></i>
+            </div>
+
+            <!-- Channels / DM List -->
+            <div id="channel-list" class="flex-1 overflow-y-auto px-2 py-3 flex flex-col gap-0.5">
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- User Profile Footer Bar -->
+            <div class="h-[52px] bg-[#232428] px-2 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 cursor-pointer hover:bg-[#35373c]/50 p-1 rounded flex-1 min-w-0" onclick="openSettingsModal()">
+                    <div class="relative">
+                        <img id="footer-user-pfp" src="" class="w-8 h-8 rounded-full object-cover" alt="Avatar">
+                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-[#23a55a] border-2 border-[#232428] rounded-full"></div>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span id="footer-username" class="text-sm font-bold text-white truncate">Username</span>
+                        <span id="footer-tag" class="text-[11px] text-[#949ba4] truncate">Online</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 text-[#b5bac1]">
+                    <button onclick="openSettingsModal()" class="w-8 h-8 hover:bg-[#35373c] hover:text-white rounded flex items-center justify-center transition" title="User Settings">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                    <button onclick="logout()" class="w-8 h-8 hover:bg-[#35373c] hover:text-[#f23f43] rounded flex items-center justify-center transition" title="Log Out">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area & Member List Wrapper -->
+        <div class="flex-1 flex flex-col bg-[#313338] min-w-0 relative">
+            
+            <!-- Chat Header -->
+            <div class="h-12 border-b border-[#1f2023] flex items-center justify-between px-4 shadow-sm z-10">
+                <div class="flex items-center gap-2">
+                    <i id="chat-header-icon" class="fa-solid fa-at text-[#80848e] text-lg"></i>
+                    <span id="chat-header-title" class="font-bold text-white">@cordme</span>
+                    <span id="chat-header-desc" class="hidden md:inline text-xs text-[#949ba4] border-l border-[#3f4147] pl-3 ml-2">Official System Account</span>
+                </div>
+                <div class="flex items-center gap-4 text-[#b5bac1]">
+                    <button onclick="toggleMemberList()" class="hover:text-white transition" title="Member List">
+                        <i class="fa-solid fa-user-group text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content Grid / Messages + Members -->
+            <div class="flex-1 flex overflow-hidden">
+                
+                <!-- Messages Scroll Area -->
+                <div class="flex-1 flex flex-col justify-end overflow-hidden">
+                    <div id="message-container" class="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-4">
+                        <!-- Messages populated here -->
+                    </div>
+
+                    <!-- Message Input Box -->
+                    <div class="px-4 pb-6">
+                        <div class="bg-[#383a40] rounded-lg p-2.5 flex items-center gap-4">
+                            <button class="w-6 h-6 bg-[#b5bac1] hover:bg-white rounded-full flex items-center justify-center text-[#383a40] font-bold transition">
+                                <i class="fa-solid fa-plus text-xs"></i>
+                            </button>
+                            <input type="text" id="message-input" onkeydown="handleMessageKeyDown(event)" placeholder="Message @cordme" class="bg-transparent text-[#dbdee1] placeholder-[#80848e] text-sm w-full outline-none">
+                            <div class="flex items-center gap-3 text-[#b5bac1]">
+                                <button onclick="sendMessage()" class="hover:text-white transition">
+                                    <i class="fa-solid fa-paper-plane text-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Members Sidebar (Collapsible) -->
+                <div id="member-sidebar" class="w-60 bg-[#2b2d31] border-l border-[#1f2023] flex flex-col p-4 overflow-y-auto shrink-0">
+                    <h3 class="text-xs font-bold text-[#949ba4] uppercase tracking-wider mb-2">Online — <span id="online-count">1</span></h3>
+                    <div id="member-list" class="flex flex-col gap-1">
+                        <!-- Members populated here -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-[#313338] flex flex-row">
+        <!-- Sidebar Tabs -->
+        <div class="w-60 bg-[#2b2d31] flex flex-col items-end py-12 pr-6 gap-1 border-r border-[#1f2023]">
+            <span class="text-xs font-bold uppercase text-[#949ba4] w-48 mb-2 px-2">User Settings</span>
+            <button onclick="switchSettingsTab('account')" id="tab-btn-account" class="w-48 text-left px-3 py-2 rounded font-medium text-white bg-[#35373c] transition">My Account</button>
+            <button onclick="switchSettingsTab('profile')" id="tab-btn-profile" class="w-48 text-left px-3 py-2 rounded font-medium text-[#b5bac1] hover:bg-[#35373c] hover:text-white transition">Profiles and PFP</button>
+            <div class="w-48 h-[1px] bg-[#3f4147] my-2"></div>
+            <button onclick="closeSettingsModal()" class="w-48 text-left px-3 py-2 rounded font-medium text-[#f23f43] hover:bg-[#f23f43]/10 transition">Close Settings</button>
+        </div>
+
+        <!-- Content Area -->
+        <div class="flex-1 bg-[#313338] p-12 overflow-y-auto flex flex-col max-w-2xl">
+            <!-- Account Tab -->
+            <div id="settings-tab-account" class="flex flex-col gap-6">
+                <h3 class="text-xl font-bold text-white">My Account</h3>
+                <div class="bg-[#1e1f22] p-4 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <img id="settings-avatar-preview" src="" class="w-20 h-20 rounded-full object-cover border-4 border-[#2b2d31]" alt="Avatar">
+                        <div>
+                            <h4 id="settings-username-display" class="text-lg font-bold text-white">Username</h4>
+                            <p id="settings-email-display" class="text-sm text-[#949ba4]">email@domain.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile & PFP Tab -->
+            <div id="settings-tab-profile" class="hidden flex flex-col gap-6">
+                <h3 class="text-xl font-bold text-white">Customize Profile Picture</h3>
+                
+                <div class="flex flex-col gap-3">
+                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Upload Image File</label>
+                    <input type="file" id="pfp-file-input" accept="image/*" onchange="handleImageUpload(event)" class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#5865f2] file:text-white hover:file:bg-[#4752c4] cursor-pointer">
+                </div>
+
+                <div class="flex flex-col gap-3">
+                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Or Paste Image URL</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="pfp-url-input" class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none flex-1 focus:ring-2 focus:ring-[#5865f2]" placeholder="https://example.com/avatar.png">
+                        <button onclick="applyPfpUrl()" class="bg-[#5865f2] hover:bg-[#4752c4] text-white px-6 rounded font-medium transition">Apply URL</button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 mt-4">
+                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Assign Random Default Avatar from Repository</label>
+                    <button onclick="assignRandomDefaultAvatarFromZip()" class="bg-[#4e5058] hover:bg-[#6d6f78] text-white py-3 px-4 rounded font-medium transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-dice"></i> Pick Random Default PFP from random pfp.zip
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ESC Button -->
+        <div class="p-12">
+            <button onclick="closeSettingsModal()" class="w-9 h-9 border-2 border-[#b5bac1] hover:border-white text-[#b5bac1] hover:text-white rounded-full flex items-center justify-center font-bold transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="text-[10px] text-[#b5bac1] uppercase tracking-widest mt-1 text-center">ESC</div>
+        </div>
+    </div>
+
+    <div id="create-server-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+        <div class="bg-[#313338] w-full max-w-md rounded-lg shadow-2xl p-6 flex flex-col">
+            <h3 class="text-2xl font-bold text-white text-center mb-2">Create a server</h3>
+            <p class="text-sm text-[#949ba4] text-center mb-6">Your server is where you and your friends hang out. Make yours and start talking.</p>
+            
+            <div class="flex flex-col gap-2 mb-6">
+                <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Server Name</label>
+                <input type="text" id="new-server-name" class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none focus:ring-2 focus:ring-[#5865f2]" placeholder="My Awesome Server">
+            </div>
+
+            <div class="flex justify-between items-center bg-[#2b2d31] -mx-6 -mb-6 p-4 rounded-b-lg">
+                <button onclick="closeCreateServerModal()" class="text-white hover:underline text-sm font-medium">Cancel</button>
+                <button onclick="createServer()" class="bg-[#5865f2] hover:bg-[#4752c4] text-white px-6 py-2.5 rounded text-sm font-medium transition">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Curated fallback avatars in case zip loading is restricted by CORS
+        const FALLBACK_AVATARS = [
+            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80",
+            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80"
+        ];
+
+        let cachedZipAvatars = [];
+
+        // Attempt to fetch and parse the random pfp.zip from the specified GitHub branch on startup
+        async function loadAvatarsFromZip() {
+            try {
+                const zipUrl = 'https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip';
+                const response = await fetch(zipUrl);
+                if (!response.ok) throw new Error('Zip fetch failed');
+                const blob = await response.blob();
+                const zip = new JSZip();
+                const content = await zip.loadAsync(blob);
+                
+                const imagePromises = [];
+                content.forEach((relativePath, zipEntry) => {
+                    if (!zipEntry.dir && (relativePath.endsWith('.png') || relativePath.endsWith('.jpg') || relativePath.endsWith('.jpeg'))) {
+                        const p = zipEntry.async('blob').then(imageBlob => {
+                            return URL.createObjectURL(imageBlob);
+                        });
+                        imagePromises.push(p);
+                    }
+                });
+
+                if (imagePromises.length > 0) {
+                    cachedZipAvatars = await Promise.all(imagePromises);
+                }
+            } catch (err) {
+                // CORS or network restriction fallback to fallback avatars
+                cachedZipAvatars = FALLBACK_AVATARS;
+            }
+        }
+
+        function getRandomAvatar() {
+            const list = cachedZipAvatars.length > 0 ? cachedZipAvatars : FALLBACK_AVATARS;
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        let currentUser = null;
+        let currentAuthMode = 'login'; // 'login' or 'register'
+        let currentServer = 'home';
+        let currentChannel = '@cordme'; // Default DM channel is '@cordme'
+
+        // Cookie Helper Functions
+        function setCookie(name, value, days = 7) {
+            const d = new Date();
+            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+            let expires = "expires=" + d.toUTCString();
+            document.cookie = name + "=" + encodeURIComponent(JSON.stringify(value)) + ";" + expires + ";path=/;SameSite=Lax";
+        }
+
+        function getCookie(name) {
+            let nameEQ = name + "=";
+            let ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) {
+                    try {
+                        return JSON.parse(decodeURIComponent(c.substring(nameEQ.length, c.length)));
+                    } catch (e) {
+                        return null;
+                    }
+                }
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+
+        // Database Helpers in localStorage
+        function getStoredUsers() {
+            const users = localStorage.getItem('cordme_users');
+            return users ? JSON.parse(users) : {};
+        }
+
+        function saveStoredUsers(users) {
+            localStorage.setItem('cordme_users', JSON.stringify(users));
+        }
+
+        function getStoredServers(userEmail) {
+            const servers = localStorage.getItem('cordme_servers_' + userEmail);
+            if (servers) return JSON.parse(servers);
+            // REQUIREMENT: User starts with NO servers upon sign up
+            const emptyServers = {};
+            localStorage.setItem('cordme_servers_' + userEmail, JSON.stringify(emptyServers));
+            return emptyServers;
+        }
+
+        function saveStoredServers(userEmail, servers) {
+            localStorage.setItem('cordme_servers_' + userEmail, JSON.stringify(servers));
+        }
+
+        function getStoredMessages(userEmail) {
+            const msgs = localStorage.getItem('cordme_messages_' + userEmail);
+            if (msgs) return JSON.parse(msgs);
+            // Default DM conversation with official '@cordme' account
+            const defaultMsgs = {
+                'home_@cordme': [
+                    { sender: '@cordme', pfp: 'https://placehold.co/40x40/5865f2/ffffff?text=CORDME', text: 'Welcome to cordme! I am the official system account. How can I help you today?', time: 'Today at 12:00 PM' }
+                ]
+            };
+            localStorage.setItem('cordme_messages_' + userEmail, JSON.stringify(defaultMsgs));
+            return defaultMsgs;
+        }
+
+        function saveStoredMessages(userEmail, msgs) {
+            localStorage.setItem('cordme_messages_' + userEmail, JSON.stringify(msgs));
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadAvatarsFromZip();
+
+            const sessionEmail = getCookie('cordme_session');
+            const users = getStoredUsers();
+
+            if (sessionEmail && users[sessionEmail]) {
+                currentUser = users[sessionEmail];
+                loginSuccess();
+            } else {
+                initAuthModal();
+            }
+        });
+
+        function initAuthModal() {
+            const modal = document.getElementById('auth-modal');
+            modal.classList.remove('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+        }
+
+        document.getElementById('auth-switch-btn').addEventListener('click', () => {
+            currentAuthMode = currentAuthMode === 'login' ? 'register' : 'login';
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const switchText = document.getElementById('auth-switch-text');
+            const switchBtn = document.getElementById('auth-switch-btn');
+            const usernameField = document.getElementById('username-field');
+            const errorDiv = document.getElementById('auth-error');
+
+            errorDiv.classList.add('hidden');
+
+            if (currentAuthMode === 'register') {
+                title.innerText = 'Create an account';
+                subtitle.innerText = 'Join cordme today';
+                submitBtn.innerText = 'Continue';
+                switchText.innerText = 'Already have an account?';
+                switchBtn.innerText = 'Log In';
+                usernameField.classList.remove('hidden');
+            } else {
+                title.innerText = 'Welcome back';
+                subtitle.innerText = 'We are excited to see you again!';
+                submitBtn.innerText = 'Log In';
+                switchText.innerText = 'Need an account?';
+                switchBtn.innerText = 'Register';
+                usernameField.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('auth-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const usernameInput = document.getElementById('auth-username').value.trim();
+            const errorDiv = document.getElementById('auth-error');
+
+            const users = getStoredUsers();
+
+            if (currentAuthMode === 'register') {
+                if (users[email]) {
+                    errorDiv.innerText = 'An account with this email already exists.';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                if (!usernameInput) {
+                    errorDiv.innerText = 'Please provide a username.';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+
+                // Pick random default avatar from zip / fallback
+                const randomPfp = getRandomAvatar();
+
+                const newUser = {
+                    email: email,
+                    username: usernameInput,
+                    password: password,
+                    pfp: randomPfp
+                };
+
+                users[email] = newUser;
+                saveStoredUsers(users);
+                currentUser = newUser;
+            } else {
+                if (!users[email] || users[email].password !== password) {
+                    errorDiv.innerText = 'Invalid email or password.';
+                    errorDiv.classList.remove('hidden');
+                    return;
+                }
+                currentUser = users[email];
+            }
+
+            // Save session to Cookie and localStorage
+            setCookie('cordme_session', currentUser.email, 7);
+            localStorage.setItem('cordme_current_user', JSON.stringify(currentUser));
+
+            loginSuccess();
+        });
+
+        function loginSuccess() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            updateUserUI();
+            renderServers();
+            renderChannels();
+            renderMessages();
+            renderMembers();
+        }
+
+        function logout() {
+            deleteCookie('cordme_session');
+            localStorage.removeItem('cordme_current_user');
+            currentUser = null;
+            window.location.reload();
+        }
+
+        function updateUserUI() {
+            if (!currentUser) return;
+            document.getElementById('footer-username').innerText = currentUser.username;
+            document.getElementById('footer-user-pfp').src = currentUser.pfp;
+            document.getElementById('settings-username-display').innerText = currentUser.username;
+            document.getElementById('settings-email-display').innerText = currentUser.email;
+            document.getElementById('settings-avatar-preview').src = currentUser.pfp;
+            document.getElementById('pfp-url-input').value = currentUser.pfp;
+        }
+
+        function renderServers() {
+            const serverList = document.getElementById('server-list');
+            serverList.innerHTML = '';
+            const servers = getStoredServers(currentUser.email);
+
+            Object.values(servers).forEach(server => {
+                const isActive = currentServer === server.id;
+                const div = document.createElement('div');
+                div.className = 'relative group flex items-center justify-center w-full cursor-pointer';
+                div.innerHTML = `
+                    <div class="absolute left-0 w-1 bg-white rounded-r transition-all duration-200 ${isActive ? 'h-10' : 'h-0 group-hover:h-5'}"></div>
+                    <button onclick="switchServer('${server.id}')" class="w-12 h-12 ${isActive ? 'bg-[#5865f2] rounded-2xl' : 'bg-[#313338] hover:bg-[#5865f2] hover:rounded-2xl rounded-[24px]'} flex items-center justify-center text-white transition-all duration-200 overflow-hidden shadow">
+                        <img src="${server.icon}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/48x48/5865f2/ffffff?text=SV'">
+                    </button>
+                    <div class="absolute left-[80px] bg-[#111214] text-white text-sm font-semibold px-3 py-1.5 rounded shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">${server.name}</div>
+                `;
+                serverList.appendChild(div);
+            });
+        }
+
+        function switchServer(serverId) {
+            currentServer = serverId;
+            const servers = getStoredServers(currentUser.email);
+
+            if (serverId === 'home') {
+                document.getElementById('current-context-name').innerText = 'Direct Messages';
+                currentChannel = '@cordme';
+            } else {
+                const s = servers[serverId];
+                if (s) {
+                    document.getElementById('current-context-name').innerText = s.name;
+                    currentChannel = s.channels[0] ? s.channels[0].id : 'general';
+                }
+            }
+
+            renderServers();
+            renderChannels();
+            renderMessages();
+            renderMembers();
+        }
+
+        function renderChannels() {
+            const channelList = document.getElementById('channel-list');
+            channelList.innerHTML = '';
+
+            if (currentServer === 'home') {
+                channelList.innerHTML = `
+                    <div class="text-xs font-bold uppercase text-[#949ba4] px-2 py-1 mb-1">Direct Messages</div>
+                    <div onclick="switchChannel('@cordme')" class="flex items-center gap-2 px-2 py-2 rounded hover:bg-[#35373c] text-[#949ba4] hover:text-[#dbdee1] cursor-pointer font-medium ${currentChannel === '@cordme' ? 'bg-[#404249] text-white' : ''}">
+                        <div class="relative">
+                            <img src="https://placehold.co/24x24/5865f2/ffffff?text=C" class="w-6 h-6 rounded-full object-cover">
+                            <div class="absolute bottom-0 right-0 w-2 h-2 bg-[#23a55a] rounded-full"></div>
+                        </div>
+                        <span>@cordme</span>
+                    </div>
+                `;
+            } else {
+                const servers = getStoredServers(currentUser.email);
+                const s = servers[currentServer];
+                if (s && s.channels) {
+                    channelList.innerHTML = `<div class="text-xs font-bold uppercase text-[#949ba4] px-2 py-1 mb-1 flex justify-between items-center">
+                        <span>Text Channels</span>
+                        <button onclick="openCreateChannelModal()" class="hover:text-white"><i class="fa-solid fa-plus text-xs"></i></button>
+                    </div>`;
+
+                    s.channels.forEach(ch => {
+                        const isActive = currentChannel === ch.id;
+                        const div = document.createElement('div');
+                        div.className = `flex items-center gap-2 px-2 py-2 rounded cursor-pointer font-medium ${isActive ? 'bg-[#404249] text-white' : 'text-[#949ba4] hover:bg-[#35373c] hover:text-[#dbdee1]'}`;
+                        div.onclick = () => switchChannel(ch.id);
+                        div.innerHTML = `
+                            <i class="fa-solid fa-hashtag text-sm"></i>
+                            <span class="truncate">${ch.name}</span>
+                        `;
+                        channelList.appendChild(div);
+                    });
+                }
+            }
+        }
+
+        function switchChannel(channelId) {
+            currentChannel = channelId;
+            document.getElementById('chat-header-title').textContent = channelId;
+            document.getElementById('message-input').placeholder = `Message ${channelId}`;
+            renderChannels();
+            renderMessages();
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('message-container');
+            container.innerHTML = '';
+            const allMsgs = getStoredMessages(currentUser.email);
+            const key = `${currentServer}_${currentChannel}`;
+            const msgs = allMsgs[key] || [];
+
+            msgs.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'flex gap-4 items-start hover:bg-[#2e3035] -mx-4 px-4 py-1 rounded';
+                div.innerHTML = `
+                    <img src="${m.pfp}" class="w-10 h-10 rounded-full object-cover mt-0.5" onerror="this.src='https://placehold.co/40x40/5865f2/ffffff?text=U'">
+                    <div class="flex flex-col flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-white text-sm hover:underline cursor-pointer">${m.sender}</span>
+                            <span class="text-[10px] text-[#949ba4]">${m.time}</span>
+                        </div>
+                        <p class="text-sm text-[#dbdee1] break-words">${escapeHTML(m.text)}</p>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function renderMembers() {
+            const memberList = document.getElementById('member-list');
+            memberList.innerHTML = '';
+            let members = [];
+
+            if (currentServer === 'home') {
+                members = [{ name: '@cordme', pfp: 'https://placehold.co/32x32/5865f2/ffffff?text=C' }, { name: currentUser.username, pfp: currentUser.pfp }];
+            } else {
+                const servers = getStoredServers(currentUser.email);
+                const s = servers[currentServer];
+                members = s ? s.members.map(m => ({ name: m, pfp: 'https://placehold.co/32x32/5865f2/ffffff?text=' + m.charAt(0) })) : [{ name: currentUser.username, pfp: currentUser.pfp }];
+            }
+
+            document.getElementById('online-count').textContent = members.length;
+
+            members.forEach(mem => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-3 px-2 py-1.5 rounded hover:bg-[#35373c] cursor-pointer group';
+                div.innerHTML = `
+                    <div class="relative">
+                        <img src="${mem.pfp}" class="w-8 h-8 rounded-full object-cover">
+                        <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#23a55a] border-2 border-[#2b2d31] rounded-full"></div>
+                    </div>
+                    <span class="text-sm font-medium text-[#dbdee1] group-hover:text-white truncate">${mem.name}</span>
+                `;
+                memberList.appendChild(div);
+            });
+        }
+
+        function handleMessageKeyDown(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const allMsgs = getStoredMessages(currentUser.email);
+            const key = `${currentServer}_${currentChannel}`;
+            if (!allMsgs[key]) allMsgs[key] = [];
+
+            const now = new Date();
+            const timeStr = `Today at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+            // Push User Message
+            allMsgs[key].push({
+                sender: currentUser.username,
+                pfp: currentUser.pfp,
+                text: text,
+                time: timeStr
+            });
+
+            saveStoredMessages(currentUser.email, allMsgs);
+            input.value = '';
+            renderMessages();
+
+            // Automated Bot Reply if messaging @cordme
+            if (currentServer === 'home' && currentChannel === '@cordme') {
+                setTimeout(() => {
+                    const botReplies = [
+                        "Thanks for messaging cordme! Everything is running smoothly.",
+                        "I have received your message. Let me know if you need any assistance.",
+                        "cordme is fully functional and saved locally.",
+                        "Hello there! Enjoy chatting on cordme."
+                    ];
+                    const replyText = botReplies[Math.floor(Math.random() * botReplies.length)];
+                    const replyTime = `Today at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+                    allMsgs[key].push({
+                        sender: '@cordme',
+                        pfp: 'https://placehold.co/40x40/5865f2/ffffff?text=CORDME',
+                        text: replyText,
+                        time: replyTime
+                    });
+                    saveStoredMessages(currentUser.email, allMsgs);
+                    renderMessages();
+                }, 1000);
+            }
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            updateUserUI();
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function switchSettingsTab(tab) {
+            const accTab = document.getElementById('settings-tab-account');
+            const profTab = document.getElementById('settings-tab-profile');
+            const btnAcc = document.getElementById('tab-btn-account');
+            const btnProf = document.getElementById('tab-btn-profile');
+
+            if (tab === 'account') {
+                accTab.classList.remove('hidden');
+                profTab.classList.add('hidden');
+                btnAcc.className = 'w-48 text-left px-3 py-2 rounded font-medium text-white bg-[#35373c] transition';
+                btnProf.className = 'w-48 text-left px-3 py-2 rounded font-medium text-[#b5bac1] hover:bg-[#35373c] hover:text-white transition';
+            } else {
+                accTab.classList.add('hidden');
+                profTab.classList.remove('hidden');
+                btnProf.className = 'w-48 text-left px-3 py-2 rounded font-medium text-white bg-[#35373c] transition';
+                btnAcc.className = 'w-48 text-left px-3 py-2 rounded font-medium text-[#b5bac1] hover:bg-[#35373c] hover:text-white transition';
+            }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Url = e.target.result;
+                updateUserPfp(base64Url);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function applyPfpUrl() {
+            const url = document.getElementById('pfp-url-input').value.trim();
+            if (!url) return;
+            updateUserPfp(url);
+        }
+
+        function assignRandomDefaultAvatarFromZip() {
+            const randomPfp = getRandomAvatar();
+            updateUserPfp(randomPfp);
+            document.getElementById('pfp-url-input').value = randomPfp;
+        }
+
+        function updateUserPfp(newPfpUrl) {
+            if (!currentUser) return;
+            currentUser.pfp = newPfpUrl;
+
+            // Update user in storage DB
+            const users = getStoredUsers();
+            if (users[currentUser.email]) {
+                users[currentUser.email].pfp = newPfpUrl;
+                saveStoredUsers(users);
+            }
+
+            // Update session storage and cookies
+            setCookie('cordme_session', currentUser.email, 7);
+            localStorage.setItem('cordme_current_user', JSON.stringify(currentUser));
+
+            updateUserUI();
+            renderMessages();
+            renderMembers();
+        }
+
+        function openCreateServerModal() {
+            document.getElementById('create-server-modal').classList.remove('hidden');
+        }
+
+        function closeCreateServerModal() {
+            document.getElementById('create-server-modal').classList.add('hidden');
+            document.getElementById('new-server-name').value = '';
+        }
+
+        function createServer() {
+            const name = document.getElementById('new-server-name').value.trim();
+            if (!name) return;
+
+            const servers = getStoredServers(currentUser.email);
+            const serverId = 'server_' + Date.now();
+            const initials = name.split(' ').map(w => w.charAt(0)).join('').substring(0, 2).toUpperCase();
+
+            servers[serverId] = {
+                id: serverId,
+                name: name,
+                icon: `https://placehold.co/48x48/5865f2/ffffff?text=${initials}`,
+                channels: [
+                    { id: 'general', name: 'general', type: 'text' }
+                ],
+                members: [currentUser.username]
+            };
+
+            saveStoredServers(currentUser.email, servers);
+            closeCreateServerModal();
+            switchServer(serverId);
+        }
+    </script>
+</body>
+</html>
