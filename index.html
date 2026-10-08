@@ -3,830 +3,1416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cordme - Discord Web Clone</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>cordme</title>
+    <!-- JSZip for handling random pfp zip files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Whitney:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: #313338;
-            color: #dbdee1;
-            user-select: none;
+        :root {
+            --bg-primary: #313338;
+            --bg-secondary: #2b2d31;
+            --bg-tertiary: #1e1f22;
+            --bg-floating: #111214;
+            --interactive-normal: #b5bac1;
+            --interactive-hover: #dbdee1;
+            --interactive-active: #ffffff;
+            --text-normal: #dbdee1;
+            --text-muted: #949ba4;
+            --channels-default: #949ba4;
+            --brand: #5865f2;
+            --brand-hover: #4752c4;
+            --danger: #f23f43;
+            --danger-hover: #d83c3e;
+            --success: #23a55a;
+            --border-subtle: #3f4147;
         }
-        /* Custom scrollbars for Discord dark theme */
-        ::-webkit-scrollbar {
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--bg-primary);
+            color: var(--text-normal);
+        }
+
+        /* Utility Hidden */
+        .hidden { display: none !important; }
+
+        /* Auth Screen */
+        #auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e1f22 0%, #2b2d31 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .auth-card {
+            background-color: var(--bg-secondary);
+            padding: 32px;
+            border-radius: 8px;
+            width: 480px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .auth-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--interactive-active);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .auth-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            background-color: var(--bg-tertiary);
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 10px;
+            color: var(--text-normal);
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            border-color: var(--brand);
+        }
+
+        .btn {
+            width: 100%;
+            background-color: var(--brand);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--brand-hover);
+        }
+
+        .auth-switch {
+            margin-top: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .auth-switch span {
+            color: var(--brand);
+            cursor: pointer;
+        }
+
+        .auth-switch span:hover {
+            text-decoration: underline;
+        }
+
+        /* App Layout */
+        #app-container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Servers Sidebar */
+        .servers-sidebar {
+            width: 72px;
+            background-color: var(--bg-tertiary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 12px;
+            gap: 8px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .server-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-normal);
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: border-radius 0.2s, background-color 0.2s;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .server-icon:hover, .server-icon.active {
+            border-radius: 16px;
+            background-color: var(--brand);
+            color: white;
+        }
+
+        .server-icon::before {
+            content: '';
+            position: absolute;
+            left: -16px;
             width: 8px;
-            height: 8px;
+            height: 20px;
+            background-color: white;
+            border-radius: 0 4px 4px 0;
+            top: 14px;
+            transform: scaleY(0);
+            transition: transform 0.2s;
         }
-        ::-webkit-scrollbar-track {
-            background: #2b2d31;
+
+        .server-icon.active::before {
+            transform: scaleY(1);
         }
-        ::-webkit-scrollbar-thumb {
-            background: #1a1b1e;
+
+        .server-separator {
+            width: 32px;
+            height: 2px;
+            background-color: var(--border-subtle);
+            border-radius: 1px;
+        }
+
+        /* Channels Sidebar */
+        .channels-sidebar {
+            width: 240px;
+            background-color: var(--bg-secondary);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .server-header {
+            height: 48px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-subtle);
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .server-header:hover {
+            background-color: rgba(255,255,255,0.03);
+        }
+
+        .channels-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 8px;
+        }
+
+        .channels-category {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 0 8px 4px;
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .channel-item {
+            padding: 8px 12px;
+            border-radius: 4px;
+            color: var(--channels-default);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .channel-item:hover {
+            background-color: rgba(255,255,255,0.04);
+            color: var(--interactive-hover);
+        }
+
+        .channel-item.active {
+            background-color: rgba(255,255,255,0.08);
+            color: var(--interactive-active);
+        }
+
+        /* User Footer Panel inside Channels Sidebar */
+        .user-footer {
+            height: 56px;
+            background-color: rgba(0,0,0,0.2);
+            padding: 0 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-footer-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            background-color: var(--bg-primary);
+        }
+
+        .user-footer-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .user-footer-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--interactive-active);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-footer-tag {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .user-footer-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--interactive-normal);
+            cursor: pointer;
+            padding: 6px;
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #111214;
+
+        .icon-btn:hover {
+            background-color: rgba(255,255,255,0.05);
+            color: var(--interactive-hover);
         }
-        .tooltip {
-            visibility: hidden;
+
+        /* Main Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-primary);
+            position: relative;
+        }
+
+        .chat-header {
+            height: 48px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-subtle);
+            font-weight: 600;
+            gap: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .message-group {
+            display: flex;
+            gap: 16px;
+            margin-top: 4px;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+            background-color: var(--bg-secondary);
+        }
+
+        .message-content-wrapper {
+            flex: 1;
+        }
+
+        .message-header-line {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .message-author {
+            font-weight: 600;
+            color: var(--interactive-active);
+        }
+
+        .message-timestamp {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .message-text {
+            color: var(--text-normal);
+            font-size: 14px;
+            line-height: 1.375rem;
+            word-break: break-word;
+        }
+
+        .chat-input-container {
+            padding: 0 16px 24px 16px;
+        }
+
+        .chat-input-box {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 11px 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .chat-input-box input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-normal);
+            font-size: 15px;
+            outline: none;
+        }
+
+        /* Members Sidebar */
+        .members-sidebar {
+            width: 240px;
+            background-color: var(--bg-secondary);
+            border-left: 1px solid var(--border-subtle);
+            padding: 16px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .member-category {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 2px;
+        }
+
+        .member-item:hover {
+            background-color: rgba(255,255,255,0.04);
+        }
+
+        .member-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .member-status {
             position: absolute;
-            z-index: 50;
+            bottom: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--success);
+            border: 2px solid var(--bg-secondary);
         }
-        .has-tooltip:hover .tooltip {
-            visibility: visible;
+
+        .member-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--interactive-normal);
+        }
+
+        .member-item:hover .member-name {
+            color: var(--interactive-hover);
+        }
+
+        /* Modals & Settings Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-card {
+            background-color: var(--bg-primary);
+            width: 480px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            padding: 24px 24px 0 24px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--interactive-active);
+            margin-bottom: 8px;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            background-color: var(--bg-secondary);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-secondary:hover {
+            text-decoration: underline;
+        }
+
+        .btn-primary {
+            background-color: var(--brand);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--brand-hover);
+        }
+
+        /* Full Settings Suite */
+        #settings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-primary);
+            z-index: 3000;
+            display: flex;
+        }
+
+        .settings-sidebar {
+            width: 232px;
+            background-color: var(--bg-secondary);
+            padding: 60px 20px 60px 60px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .settings-category-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 6px 10px;
+            margin-top: 12px;
+        }
+
+        .settings-nav-item {
+            padding: 10px;
+            border-radius: 4px;
+            color: var(--interactive-normal);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .settings-nav-item:hover {
+            background-color: rgba(255,255,255,0.04);
+            color: var(--interactive-hover);
+        }
+
+        .settings-nav-item.active {
+            background-color: rgba(255,255,255,0.08);
+            color: var(--interactive-active);
+        }
+
+        .settings-nav-item.danger {
+            color: var(--danger);
+        }
+
+        .settings-nav-item.danger:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .settings-content-area {
+            flex: 1;
+            padding: 60px 40px;
+            overflow-y: auto;
+            position: relative;
+            max-width: 800px;
+        }
+
+        .settings-close-btn {
+            position: absolute;
+            top: 60px;
+            right: 60px;
+            border: 2px solid var(--text-muted);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .settings-close-btn:hover {
+            border-color: var(--interactive-active);
+            color: var(--interactive-active);
+        }
+
+        .settings-section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--interactive-active);
+            margin-bottom: 20px;
+        }
+
+        .profile-banner-edit {
+            background-color: var(--brand);
+            height: 100px;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+        }
+
+        .profile-card-edit {
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .profile-body-edit {
+            padding: 16px;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .profile-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 6px solid var(--bg-secondary);
+            background-size: cover;
+            background-position: center;
+            position: absolute;
+            top: -46px;
+            left: 16px;
+            background-color: var(--bg-primary);
+        }
+
+        /* Dropdowns & Menus */
+        .server-dropdown-menu {
+            position: absolute;
+            top: 52px;
+            left: 80px;
+            background-color: var(--bg-floating);
+            border-radius: 4px;
+            width: 220px;
+            padding: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        .dropdown-item {
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: var(--interactive-normal);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--brand);
+            color: white;
+        }
+
+        .dropdown-item.danger {
+            color: var(--danger);
+        }
+
+        .dropdown-item.danger:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .dropdown-separator {
+            height: 1px;
+            background-color: var(--border-subtle);
+            margin: 4px 0;
         }
     </style>
 </head>
-<body class="h-screen w-screen overflow-hidden flex flex-col">
+<body>
 
-    <div id="auth-modal" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-        <div class="bg-[#313338] w-full max-w-md rounded-lg shadow-2xl p-8 flex flex-col">
-            <div class="text-center mb-6">
-                <h2 id="auth-title" class="text-2xl font-bold text-white mb-2">Welcome back</h2>
-                <p id="auth-subtitle" class="text-sm text-[#949ba4]">We are excited to see you again!</p>
-            </div>
-
-            <!-- Error Banner -->
-            <div id="auth-error" class="hidden bg-[#f23f43]/10 border border-[#f23f43] text-[#f23f43] p-3 rounded mb-4 text-sm font-medium"></div>
-
-            <form id="auth-form" class="flex flex-col gap-4">
-                <div id="username-field" class="hidden flex flex-col gap-2">
-                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Username</label>
-                    <input type="text" id="auth-username" class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none focus:ring-2 focus:ring-[#5865f2]" placeholder="CoolGamer99">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Email</label>
-                    <input type="email" id="auth-email" required class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none focus:ring-2 focus:ring-[#5865f2]" placeholder="user@cordme.com">
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Password</label>
-                    <input type="password" id="auth-password" required class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none focus:ring-2 focus:ring-[#5865f2]" placeholder="••••••••">
-                </div>
-
-                <button type="submit" id="auth-submit-btn" class="bg-[#5865f2] hover:bg-[#4752c4] text-white font-medium py-3 rounded transition duration-200 mt-2">Log In</button>
-            </form>
-
-            <div class="mt-4 text-sm text-[#949ba4] flex justify-between items-center">
-                <span id="auth-switch-text">Need an account?</span>
-                <button id="auth-switch-btn" class="text-[#00a8fc] hover:underline font-medium">Register</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="app-container" class="hidden h-full w-full flex flex-row overflow-hidden">
-        
-        <!-- Servers Sidebar -->
-        <nav class="w-[72px] bg-[#1e1f22] flex flex-col items-center py-3 gap-2 shrink-0 select-none z-20">
-            <!-- Direct Messages / Home Button -->
-            <div class="relative group flex items-center justify-center w-full">
-                <div id="home-pill" class="absolute left-0 w-1 bg-white rounded-r transition-all duration-200 h-0 group-hover:h-5"></div>
-                <button onclick="switchServer('home')" class="w-12 h-12 bg-[#313338] hover:bg-[#5865f2] hover:rounded-2xl rounded-[24px] flex items-center justify-center text-white transition-all duration-200 group-hover:rounded-2xl">
-                    <i class="fa-solid fa-house text-xl"></i>
-                </button>
-                <div class="absolute left-[80px] bg-[#111214] text-white text-sm font-semibold px-3 py-1.5 rounded shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">Direct Messages</div>
-            </div>
-
-            <div class="w-8 h-[2px] bg-[#35363c] rounded"></div>
-
-            <!-- Dynamic Server List -->
-            <div id="server-list" class="flex flex-col gap-2 w-full items-center overflow-y-auto flex-1 max-h-[calc(100vh-200px)]">
-                <!-- Servers populated by JS -->
-            </div>
-
-            <!-- Add Server Button -->
-            <div class="relative group flex items-center justify-center w-full mt-auto">
-                <button onclick="openCreateServerModal()" class="w-12 h-12 bg-[#313338] hover:bg-[#23a55a] hover:text-white text-[#23a55a] hover:rounded-2xl rounded-[24px] flex items-center justify-center transition-all duration-200">
-                    <i class="fa-solid fa-plus text-xl"></i>
-                </button>
-                <div class="absolute left-[80px] bg-[#111214] text-white text-sm font-semibold px-3 py-1.5 rounded shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">Add a Server</div>
-            </div>
-        </nav>
-
-        <!-- Channels & DMs Sidebar -->
-        <div class="w-60 bg-[#2b2d31] flex flex-col shrink-0 select-none z-10 border-r border-[#1f2023]">
-            <!-- Header / Server Name -->
-            <div class="h-12 border-b border-[#1f2023] flex items-center justify-between px-4 shadow-sm font-bold text-white hover:bg-[#35373c] cursor-pointer">
-                <span id="current-context-name" class="truncate">Direct Messages</span>
-                <i id="context-header-icon" class="fa-solid fa-chevron-down text-xs text-[#949ba4]"></i>
-            </div>
-
-            <!-- Channels / DM List -->
-            <div id="channel-list" class="flex-1 overflow-y-auto px-2 py-3 flex flex-col gap-0.5">
-                <!-- Dynamically populated -->
-            </div>
-
-            <!-- User Profile Footer Bar -->
-            <div class="h-[52px] bg-[#232428] px-2 flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 cursor-pointer hover:bg-[#35373c]/50 p-1 rounded flex-1 min-w-0" onclick="openSettingsModal()">
-                    <div class="relative">
-                        <img id="footer-user-pfp" src="" class="w-8 h-8 rounded-full object-cover" alt="Avatar">
-                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-[#23a55a] border-2 border-[#232428] rounded-full"></div>
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                        <span id="footer-username" class="text-sm font-bold text-white truncate">Username</span>
-                        <span id="footer-tag" class="text-[11px] text-[#949ba4] truncate">Online</span>
-                    </div>
-                </div>
-                <div class="flex items-center gap-1 text-[#b5bac1]">
-                    <button onclick="openSettingsModal()" class="w-8 h-8 hover:bg-[#35373c] hover:text-white rounded flex items-center justify-center transition" title="User Settings">
-                        <i class="fa-solid fa-gear"></i>
-                    </button>
-                    <button onclick="logout()" class="w-8 h-8 hover:bg-[#35373c] hover:text-[#f23f43] rounded flex items-center justify-center transition" title="Log Out">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Chat Area & Member List Wrapper -->
-        <div class="flex-1 flex flex-col bg-[#313338] min-w-0 relative">
+    <!-- AUTH SCREEN -->
+    <div id="auth-screen">
+        <div class="auth-card">
+            <div class="auth-title" id="auth-title">Welcome to cordme</div>
+            <div class="auth-subtitle" id="auth-subtitle">Connect and chat with your friends</div>
             
-            <!-- Chat Header -->
-            <div class="h-12 border-b border-[#1f2023] flex items-center justify-between px-4 shadow-sm z-10">
-                <div class="flex items-center gap-2">
-                    <i id="chat-header-icon" class="fa-solid fa-at text-[#80848e] text-lg"></i>
-                    <span id="chat-header-title" class="font-bold text-white">@cordme</span>
-                    <span id="chat-header-desc" class="hidden md:inline text-xs text-[#949ba4] border-l border-[#3f4147] pl-3 ml-2">Official System Account</span>
-                </div>
-                <div class="flex items-center gap-4 text-[#b5bac1]">
-                    <button onclick="toggleMemberList()" class="hover:text-white transition" title="Member List">
-                        <i class="fa-solid fa-user-group text-lg"></i>
-                    </button>
-                </div>
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="auth-username" placeholder="Enter your username">
             </div>
-
-            <!-- Main Content Grid / Messages + Members -->
-            <div class="flex-1 flex overflow-hidden">
-                
-                <!-- Messages Scroll Area -->
-                <div class="flex-1 flex flex-col justify-end overflow-hidden">
-                    <div id="message-container" class="flex-1 overflow-y-auto px-4 py-6 flex flex-col gap-4">
-                        <!-- Messages populated here -->
-                    </div>
-
-                    <!-- Message Input Box -->
-                    <div class="px-4 pb-6">
-                        <div class="bg-[#383a40] rounded-lg p-2.5 flex items-center gap-4">
-                            <button class="w-6 h-6 bg-[#b5bac1] hover:bg-white rounded-full flex items-center justify-center text-[#383a40] font-bold transition">
-                                <i class="fa-solid fa-plus text-xs"></i>
-                            </button>
-                            <input type="text" id="message-input" onkeydown="handleMessageKeyDown(event)" placeholder="Message @cordme" class="bg-transparent text-[#dbdee1] placeholder-[#80848e] text-sm w-full outline-none">
-                            <div class="flex items-center gap-3 text-[#b5bac1]">
-                                <button onclick="sendMessage()" class="hover:text-white transition">
-                                    <i class="fa-solid fa-paper-plane text-lg"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Members Sidebar (Collapsible) -->
-                <div id="member-sidebar" class="w-60 bg-[#2b2d31] border-l border-[#1f2023] flex flex-col p-4 overflow-y-auto shrink-0">
-                    <h3 class="text-xs font-bold text-[#949ba4] uppercase tracking-wider mb-2">Online — <span id="online-count">1</span></h3>
-                    <div id="member-list" class="flex flex-col gap-1">
-                        <!-- Members populated here -->
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-[#313338] flex flex-row">
-        <!-- Sidebar Tabs -->
-        <div class="w-60 bg-[#2b2d31] flex flex-col items-end py-12 pr-6 gap-1 border-r border-[#1f2023]">
-            <span class="text-xs font-bold uppercase text-[#949ba4] w-48 mb-2 px-2">User Settings</span>
-            <button onclick="switchSettingsTab('account')" id="tab-btn-account" class="w-48 text-left px-3 py-2 rounded font-medium text-white bg-[#35373c] transition">My Account</button>
-            <button onclick="switchSettingsTab('profile')" id="tab-btn-profile" class="w-48 text-left px-3 py-2 rounded font-medium text-[#b5bac1] hover:bg-[#35373c] hover:text-white transition">Profiles and PFP</button>
-            <div class="w-48 h-[1px] bg-[#3f4147] my-2"></div>
-            <button onclick="closeSettingsModal()" class="w-48 text-left px-3 py-2 rounded font-medium text-[#f23f43] hover:bg-[#f23f43]/10 transition">Close Settings</button>
-        </div>
-
-        <!-- Content Area -->
-        <div class="flex-1 bg-[#313338] p-12 overflow-y-auto flex flex-col max-w-2xl">
-            <!-- Account Tab -->
-            <div id="settings-tab-account" class="flex flex-col gap-6">
-                <h3 class="text-xl font-bold text-white">My Account</h3>
-                <div class="bg-[#1e1f22] p-4 rounded-lg flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <img id="settings-avatar-preview" src="" class="w-20 h-20 rounded-full object-cover border-4 border-[#2b2d31]" alt="Avatar">
-                        <div>
-                            <h4 id="settings-username-display" class="text-lg font-bold text-white">Username</h4>
-                            <p id="settings-email-display" class="text-sm text-[#949ba4]">email@domain.com</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Profile & PFP Tab -->
-            <div id="settings-tab-profile" class="hidden flex flex-col gap-6">
-                <h3 class="text-xl font-bold text-white">Customize Profile Picture</h3>
-                
-                <div class="flex flex-col gap-3">
-                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Upload Image File</label>
-                    <input type="file" id="pfp-file-input" accept="image/*" onchange="handleImageUpload(event)" class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#5865f2] file:text-white hover:file:bg-[#4752c4] cursor-pointer">
-                </div>
-
-                <div class="flex flex-col gap-3">
-                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Or Paste Image URL</label>
-                    <div class="flex gap-2">
-                        <input type="url" id="pfp-url-input" class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none flex-1 focus:ring-2 focus:ring-[#5865f2]" placeholder="https://example.com/avatar.png">
-                        <button onclick="applyPfpUrl()" class="bg-[#5865f2] hover:bg-[#4752c4] text-white px-6 rounded font-medium transition">Apply URL</button>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-3 mt-4">
-                    <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Assign Random Default Avatar from Repository</label>
-                    <button onclick="assignRandomDefaultAvatarFromZip()" class="bg-[#4e5058] hover:bg-[#6d6f78] text-white py-3 px-4 rounded font-medium transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-dice"></i> Pick Random Default PFP from random pfp.zip
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ESC Button -->
-        <div class="p-12">
-            <button onclick="closeSettingsModal()" class="w-9 h-9 border-2 border-[#b5bac1] hover:border-white text-[#b5bac1] hover:text-white rounded-full flex items-center justify-center font-bold transition">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-            <div class="text-[10px] text-[#b5bac1] uppercase tracking-widest mt-1 text-center">ESC</div>
-        </div>
-    </div>
-
-    <div id="create-server-modal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-        <div class="bg-[#313338] w-full max-w-md rounded-lg shadow-2xl p-6 flex flex-col">
-            <h3 class="text-2xl font-bold text-white text-center mb-2">Create a server</h3>
-            <p class="text-sm text-[#949ba4] text-center mb-6">Your server is where you and your friends hang out. Make yours and start talking.</p>
             
-            <div class="flex flex-col gap-2 mb-6">
-                <label class="text-xs font-bold uppercase tracking-wider text-[#949ba4]">Server Name</label>
-                <input type="text" id="new-server-name" class="bg-[#1e1f22] text-[#dbdee1] p-3 rounded outline-none focus:ring-2 focus:ring-[#5865f2]" placeholder="My Awesome Server">
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="auth-password" placeholder="Enter your password">
             </div>
 
-            <div class="flex justify-between items-center bg-[#2b2d31] -mx-6 -mb-6 p-4 rounded-b-lg">
-                <button onclick="closeCreateServerModal()" class="text-white hover:underline text-sm font-medium">Cancel</button>
-                <button onclick="createServer()" class="bg-[#5865f2] hover:bg-[#4752c4] text-white px-6 py-2.5 rounded text-sm font-medium transition">Create</button>
+            <button class="btn" id="auth-submit-btn" onclick="handleAuthSubmit()">Log In</button>
+            
+            <div class="auth-switch" id="auth-switch-text">
+                Need an account? <span onclick="toggleAuthMode()">Register</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="app-container" class="hidden">
+        <!-- SERVERS SIDEBAR -->
+        <div class="servers-sidebar" id="servers-sidebar">
+            <div class="server-icon" onclick="switchToServer('dm')" title="Direct Messages" id="dm-server-icon">DM</div>
+            <div class="server-separator"></div>
+            <div id="server-list-container" style="display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%;"></div>
+            <div class="server-icon" onclick="openCreateServerModal()" title="Add a Server" style="background-color: var(--bg-secondary); color: var(--success);">+</div>
+            <div class="server-icon" onclick="openJoinServerModal()" title="Join a Server" style="background-color: var(--bg-secondary); color: var(--interactive-hover);">#</div>
+        </div>
+
+        <!-- CHANNELS SIDEBAR -->
+        <div class="channels-sidebar">
+            <div class="server-header" id="current-server-name" onclick="toggleServerDropdown()">
+                <span>cordme</span>
+                <span style="font-size: 10px;">v</span>
+            </div>
+            
+            <!-- Server Dropdown Menu (Hidden by default) -->
+            <div id="server-dropdown" class="server-dropdown-menu hidden">
+                <div class="dropdown-item" onclick="openInviteModal()">Invite People</div>
+                <div class="dropdown-item" onclick="openServerSettingsModal()">Server Settings</div>
+                <div class="dropdown-item" onclick="openCreateChannelModal()">Create Channel</div>
+                <div class="dropdown-separator"></div>
+                <div class="dropdown-item danger" onclick="leaveOrDeleteServer()">Leave Server</div>
+            </div>
+
+            <div class="channels-list">
+                <div class="channels-category">
+                    <span>Text Channels</span>
+                    <span style="cursor: pointer;" onclick="openCreateChannelModal()">+</span>
+                </div>
+                <div id="text-channels-container"></div>
+
+                <div class="channels-category" style="margin-top: 24px;">
+                    <span>Voice Channels</span>
+                    <span>+</span>
+                </div>
+                <div id="voice-channels-container"></div>
+            </div>
+
+            <!-- User Footer -->
+            <div class="user-footer">
+                <div class="user-footer-avatar" id="footer-avatar"></div>
+                <div class="user-footer-info">
+                    <div class="user-footer-name" id="footer-username">User</div>
+                    <div class="user-footer-tag" id="footer-tag">Online</div>
+                </div>
+                <div class="user-footer-actions">
+                    <button class="icon-btn" onclick="openSettings()" title="User Settings">⚙</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CHAT AREA -->
+        <div class="chat-area">
+            <div class="chat-header" id="current-channel-title"># general</div>
+            
+            <div class="chat-messages" id="chat-messages-container"></div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-box">
+                    <input type="text" id="chat-input-field" placeholder="Message #general" onkeydown="handleChatKeyDown(event)">
+                </div>
+            </div>
+        </div>
+
+        <!-- MEMBERS SIDEBAR -->
+        <div class="members-sidebar" id="members-sidebar-container">
+            <div class="member-category">Online — 2</div>
+            <div class="member-item">
+                <div class="member-avatar" style="background-image: url('https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip')">
+                    <div class="member-status"></div>
+                </div>
+                <div class="member-name">@cordme</div>
+            </div>
+            <div class="member-item">
+                <div class="member-avatar" id="member-self-avatar">
+                    <div class="member-status"></div>
+                </div>
+                <div class="member-name" id="member-self-name">You</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS SUITE OVERLAY -->
+    <div id="settings-overlay" class="hidden">
+        <div class="settings-sidebar">
+            <div class="settings-category-title">User Settings</div>
+            <div class="settings-nav-item active" onclick="switchSettingsTab('account')">My Account</div>
+            <div class="settings-nav-item" onclick="switchSettingsTab('profile')">Profiles</div>
+            <div class="settings-category-title">App Settings</div>
+            <div class="settings-nav-item" onclick="switchSettingsTab('appearance')">Appearance</div>
+            <div class="settings-nav-item" onclick="switchSettingsTab('voice')">Voice & Video</div>
+            <div class="settings-category-title" style="margin-top: 20px;"></div>
+            <div class="settings-nav-item danger" onclick="handleLogout()">Log Out</div>
+        </div>
+        <div class="settings-content-area" id="settings-content-container">
+            <!-- Dynamic settings content injected here -->
+        </div>
+        <div class="settings-close-btn" onclick="closeSettings()" title="Close">X</div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Create Server Modal -->
+    <div id="create-server-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Create Your Server</div>
+                <div style="font-size: 14px; color: var(--text-muted);">Your server is where you and your friends hang out. Make yours and start talking.</div>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Server Name</label>
+                    <input type="text" id="new-server-name-input" placeholder="My awesome server">
+                </div>
+                <div class="input-group">
+                    <label>Server Icon Image URL (Optional)</label>
+                    <input type="text" id="new-server-icon-input" placeholder="https://example.com/icon.png">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModals()">Cancel</button>
+                <button class="btn-primary" onclick="submitCreateServer()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Join Server Modal -->
+    <div id="join-server-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Join a Server</div>
+                <div style="font-size: 14px; color: var(--text-muted);">Enter an invite code to join an existing server</div>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Invite Code</label>
+                    <input type="text" id="join-invite-input" placeholder="e.g. cordme-xyz">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModals()">Cancel</button>
+                <button class="btn-primary" onclick="submitJoinServer()">Join Server</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Channel Modal -->
+    <div id="create-channel-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Create Channel</div>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <label>Channel Name</label>
+                    <input type="text" id="new-channel-name-input" placeholder="new-channel">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModals()">Cancel</button>
+                <button class="btn-primary" onclick="submitCreateChannel()">Create Channel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invite Modal -->
+    <div id="invite-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Invite Friends</div>
+                <div style="font-size: 14px; color: var(--text-muted);">Share this invite code with others:</div>
+            </div>
+            <div class="modal-body">
+                <div class="input-group">
+                    <input type="text" id="invite-code-display" readonly style="font-weight: bold; text-align: center;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="closeModals()">Done</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Curated fallback avatars in case zip loading is restricted by CORS
-        const FALLBACK_AVATARS = [
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80",
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
-            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80",
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80"
-        ];
+        // Mock Server Database & State
+        let db = {
+            users: JSON.parse(localStorage.getItem('cordme_users')) || {
+                "@cordme": {
+                    username: "@cordme",
+                    password: "system_password",
+                    pfp: "https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip",
+                    bio: "Official System Account"
+                }
+            },
+            servers: JSON.parse(localStorage.getItem('cordme_servers')) || {},
+            messages: JSON.parse(localStorage.getItem('cordme_messages')) || {}
+        };
 
-        let cachedZipAvatars = [];
+        let currentUser = localStorage.getItem('cordme_current_user') || null;
+        let currentServerId = 'dm';
+        let currentChannelId = 'dm-cordme';
+        let isRegisterMode = false;
+        let randomPfpPool = [];
 
-        // Attempt to fetch and parse the random pfp.zip from the specified GitHub branch on startup
-        async function loadAvatarsFromZip() {
+        // Save DB
+        function saveDB() {
+            localStorage.setItem('cordme_users', JSON.stringify(db.users));
+            localStorage.setItem('cordme_servers', JSON.stringify(db.servers));
+            localStorage.setItem('cordme_messages', JSON.stringify(db.messages));
+            if (currentUser) {
+                document.cookie = `cordme_session=${currentUser}; max-age=31536000; path=/`;
+            } else {
+                document.cookie = `cordme_session=; max-age=0; path=/`;
+            }
+        }
+
+        // Fetch and load random profile pictures from ZIP
+        async function initRandomPfgs() {
             try {
-                const zipUrl = 'https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip';
-                const response = await fetch(zipUrl);
-                if (!response.ok) throw new Error('Zip fetch failed');
+                const response = await fetch('https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip');
                 const blob = await response.blob();
-                const zip = new JSZip();
-                const content = await zip.loadAsync(blob);
+                const zip = await JSZip.loadAsync(blob);
                 
-                const imagePromises = [];
-                content.forEach((relativePath, zipEntry) => {
-                    if (!zipEntry.dir && (relativePath.endsWith('.png') || relativePath.endsWith('.jpg') || relativePath.endsWith('.jpeg'))) {
-                        const p = zipEntry.async('blob').then(imageBlob => {
-                            return URL.createObjectURL(imageBlob);
-                        });
-                        imagePromises.push(p);
-                    }
-                });
-
-                if (imagePromises.length > 0) {
-                    cachedZipAvatars = await Promise.all(imagePromises);
-                }
-            } catch (err) {
-                // CORS or network restriction fallback to fallback avatars
-                cachedZipAvatars = FALLBACK_AVATARS;
-            }
-        }
-
-        function getRandomAvatar() {
-            const list = cachedZipAvatars.length > 0 ? cachedZipAvatars : FALLBACK_AVATARS;
-            return list[Math.floor(Math.random() * list.length)];
-        }
-
-        let currentUser = null;
-        let currentAuthMode = 'login'; // 'login' or 'register'
-        let currentServer = 'home';
-        let currentChannel = '@cordme'; // Default DM channel is '@cordme'
-
-        // Cookie Helper Functions
-        function setCookie(name, value, days = 7) {
-            const d = new Date();
-            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-            let expires = "expires=" + d.toUTCString();
-            document.cookie = name + "=" + encodeURIComponent(JSON.stringify(value)) + ";" + expires + ";path=/;SameSite=Lax";
-        }
-
-        function getCookie(name) {
-            let nameEQ = name + "=";
-            let ca = document.cookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) == 0) {
-                    try {
-                        return JSON.parse(decodeURIComponent(c.substring(nameEQ.length, c.length)));
-                    } catch (e) {
-                        return null;
+                for (let filename of Object.keys(zip.files)) {
+                    if (filename.toLowerCase().endsWith('.png') && !zip.files[filename].dir) {
+                        const imgData = await zip.files[filename].async('base64');
+                        randomPfpPool.push(`data:image/png;base64,${imgData}`);
                     }
                 }
+            } catch (e) {
+                console.log('Fallback to default asset URL pool due to cross-origin or fetch restriction.');
+                randomPfpPool = [
+                    'https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip'
+                ];
             }
-            return null;
         }
 
-        function deleteCookie(name) {
-            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        }
-
-        // Database Helpers in localStorage
-        function getStoredUsers() {
-            const users = localStorage.getItem('cordme_users');
-            return users ? JSON.parse(users) : {};
-        }
-
-        function saveStoredUsers(users) {
-            localStorage.setItem('cordme_users', JSON.stringify(users));
-        }
-
-        function getStoredServers(userEmail) {
-            const servers = localStorage.getItem('cordme_servers_' + userEmail);
-            if (servers) return JSON.parse(servers);
-            // REQUIREMENT: User starts with NO servers upon sign up
-            const emptyServers = {};
-            localStorage.setItem('cordme_servers_' + userEmail, JSON.stringify(emptyServers));
-            return emptyServers;
-        }
-
-        function saveStoredServers(userEmail, servers) {
-            localStorage.setItem('cordme_servers_' + userEmail, JSON.stringify(servers));
-        }
-
-        function getStoredMessages(userEmail) {
-            const msgs = localStorage.getItem('cordme_messages_' + userEmail);
-            if (msgs) return JSON.parse(msgs);
-            // Default DM conversation with official '@cordme' account
-            const defaultMsgs = {
-                'home_@cordme': [
-                    { sender: '@cordme', pfp: 'https://placehold.co/40x40/5865f2/ffffff?text=CORDME', text: 'Welcome to cordme! I am the official system account. How can I help you today?', time: 'Today at 12:00 PM' }
-                ]
-            };
-            localStorage.setItem('cordme_messages_' + userEmail, JSON.stringify(defaultMsgs));
-            return defaultMsgs;
-        }
-
-        function saveStoredMessages(userEmail, msgs) {
-            localStorage.setItem('cordme_messages_' + userEmail, JSON.stringify(msgs));
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            await loadAvatarsFromZip();
-
-            const sessionEmail = getCookie('cordme_session');
-            const users = getStoredUsers();
-
-            if (sessionEmail && users[sessionEmail]) {
-                currentUser = users[sessionEmail];
-                loginSuccess();
-            } else {
-                initAuthModal();
+        function getRandomPfp() {
+            if (randomPfpPool.length > 0) {
+                return randomPfpPool[Math.floor(Math.random() * randomPfpPool.length)];
             }
-        });
-
-        function initAuthModal() {
-            const modal = document.getElementById('auth-modal');
-            modal.classList.remove('hidden');
-            document.getElementById('app-container').classList.add('hidden');
+            return 'https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip';
         }
 
-        document.getElementById('auth-switch-btn').addEventListener('click', () => {
-            currentAuthMode = currentAuthMode === 'login' ? 'register' : 'login';
-            const title = document.getElementById('auth-title');
-            const subtitle = document.getElementById('auth-subtitle');
-            const submitBtn = document.getElementById('auth-submit-btn');
-            const switchText = document.getElementById('auth-switch-text');
-            const switchBtn = document.getElementById('auth-switch-btn');
-            const usernameField = document.getElementById('username-field');
-            const errorDiv = document.getElementById('auth-error');
+        // Auth Switcher
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('auth-title').innerText = isRegisterMode ? 'Create an Account' : 'Welcome back!';
+            document.getElementById('auth-subtitle').innerText = isRegisterMode ? 'We are so excited to see you!' : 'We are so excited to see you again!';
+            document.getElementById('auth-submit-btn').innerText = isRegisterMode ? 'Continue' : 'Log In';
+            document.getElementById('auth-switch-text').innerHTML = isRegisterMode ? 
+                'Already have an account? <span onclick="toggleAuthMode()">Log In</span>' : 
+                'Need an account? <span onclick="toggleAuthMode()">Register</span>';
+        }
 
-            errorDiv.classList.add('hidden');
+        function handleAuthSubmit() {
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value.trim();
 
-            if (currentAuthMode === 'register') {
-                title.innerText = 'Create an account';
-                subtitle.innerText = 'Join cordme today';
-                submitBtn.innerText = 'Continue';
-                switchText.innerText = 'Already have an account?';
-                switchBtn.innerText = 'Log In';
-                usernameField.classList.remove('hidden');
-            } else {
-                title.innerText = 'Welcome back';
-                subtitle.innerText = 'We are excited to see you again!';
-                submitBtn.innerText = 'Log In';
-                switchText.innerText = 'Need an account?';
-                switchBtn.innerText = 'Register';
-                usernameField.classList.add('hidden');
+            if (!username || !password) {
+                alert('Please enter both username and password.');
+                return;
             }
-        });
 
-        document.getElementById('auth-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value;
-            const usernameInput = document.getElementById('auth-username').value.trim();
-            const errorDiv = document.getElementById('auth-error');
-
-            const users = getStoredUsers();
-
-            if (currentAuthMode === 'register') {
-                if (users[email]) {
-                    errorDiv.innerText = 'An account with this email already exists.';
-                    errorDiv.classList.remove('hidden');
+            if (isRegisterMode) {
+                if (db.users[username]) {
+                    alert('Username already exists.');
                     return;
                 }
-                if (!usernameInput) {
-                    errorDiv.innerText = 'Please provide a username.';
-                    errorDiv.classList.remove('hidden');
-                    return;
-                }
-
-                // Pick random default avatar from zip / fallback
-                const randomPfp = getRandomAvatar();
-
-                const newUser = {
-                    email: email,
-                    username: usernameInput,
+                db.users[username] = {
+                    username: username,
                     password: password,
-                    pfp: randomPfp
+                    pfp: getRandomPfp(),
+                    bio: 'Hey there! I am using cordme.'
                 };
-
-                users[email] = newUser;
-                saveStoredUsers(users);
-                currentUser = newUser;
+                saveDB();
+                alert('Account created successfully! Please log in.');
+                toggleAuthMode();
             } else {
-                if (!users[email] || users[email].password !== password) {
-                    errorDiv.innerText = 'Invalid email or password.';
-                    errorDiv.classList.remove('hidden');
+                if (!db.users[username] || db.users[username].password !== password) {
+                    alert('Invalid username or password.');
                     return;
                 }
-                currentUser = users[email];
+                currentUser = username;
+                localStorage.setItem('cordme_current_user', currentUser);
+                saveDB();
+                bootApp();
             }
-
-            // Save session to Cookie and localStorage
-            setCookie('cordme_session', currentUser.email, 7);
-            localStorage.setItem('cordme_current_user', JSON.stringify(currentUser));
-
-            loginSuccess();
-        });
-
-        function loginSuccess() {
-            document.getElementById('auth-modal').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-            updateUserUI();
-            renderServers();
-            renderChannels();
-            renderMessages();
-            renderMembers();
         }
 
-        function logout() {
-            deleteCookie('cordme_session');
-            localStorage.removeItem('cordme_current_user');
+        function handleLogout() {
             currentUser = null;
-            window.location.reload();
+            localStorage.removeItem('cordme_current_user');
+            saveDB();
+            location.reload();
         }
 
-        function updateUserUI() {
-            if (!currentUser) return;
-            document.getElementById('footer-username').innerText = currentUser.username;
-            document.getElementById('footer-user-pfp').src = currentUser.pfp;
-            document.getElementById('settings-username-display').innerText = currentUser.username;
-            document.getElementById('settings-email-display').innerText = currentUser.email;
-            document.getElementById('settings-avatar-preview').src = currentUser.pfp;
-            document.getElementById('pfp-url-input').value = currentUser.pfp;
-        }
-
-        function renderServers() {
-            const serverList = document.getElementById('server-list');
-            serverList.innerHTML = '';
-            const servers = getStoredServers(currentUser.email);
-
-            Object.values(servers).forEach(server => {
-                const isActive = currentServer === server.id;
-                const div = document.createElement('div');
-                div.className = 'relative group flex items-center justify-center w-full cursor-pointer';
-                div.innerHTML = `
-                    <div class="absolute left-0 w-1 bg-white rounded-r transition-all duration-200 ${isActive ? 'h-10' : 'h-0 group-hover:h-5'}"></div>
-                    <button onclick="switchServer('${server.id}')" class="w-12 h-12 ${isActive ? 'bg-[#5865f2] rounded-2xl' : 'bg-[#313338] hover:bg-[#5865f2] hover:rounded-2xl rounded-[24px]'} flex items-center justify-center text-white transition-all duration-200 overflow-hidden shadow">
-                        <img src="${server.icon}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/48x48/5865f2/ffffff?text=SV'">
-                    </button>
-                    <div class="absolute left-[80px] bg-[#111214] text-white text-sm font-semibold px-3 py-1.5 rounded shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50">${server.name}</div>
-                `;
-                serverList.appendChild(div);
-            });
-        }
-
-        function switchServer(serverId) {
-            currentServer = serverId;
-            const servers = getStoredServers(currentUser.email);
-
-            if (serverId === 'home') {
-                document.getElementById('current-context-name').innerText = 'Direct Messages';
-                currentChannel = '@cordme';
-            } else {
-                const s = servers[serverId];
-                if (s) {
-                    document.getElementById('current-context-name').innerText = s.name;
-                    currentChannel = s.channels[0] ? s.channels[0].id : 'general';
-                }
+        // Boot Application
+        window.onload = async function() {
+            await initRandomPfgs();
+            
+            // Check session cookie or localStorage
+            if (!currentUser) {
+                const match = document.cookie.match(new RegExp('(^| )cordme_session=([^;]+)'));
+                if (match) currentUser = match[2];
             }
 
-            renderServers();
-            renderChannels();
-            renderMessages();
-            renderMembers();
-        }
-
-        function renderChannels() {
-            const channelList = document.getElementById('channel-list');
-            channelList.innerHTML = '';
-
-            if (currentServer === 'home') {
-                channelList.innerHTML = `
-                    <div class="text-xs font-bold uppercase text-[#949ba4] px-2 py-1 mb-1">Direct Messages</div>
-                    <div onclick="switchChannel('@cordme')" class="flex items-center gap-2 px-2 py-2 rounded hover:bg-[#35373c] text-[#949ba4] hover:text-[#dbdee1] cursor-pointer font-medium ${currentChannel === '@cordme' ? 'bg-[#404249] text-white' : ''}">
-                        <div class="relative">
-                            <img src="https://placehold.co/24x24/5865f2/ffffff?text=C" class="w-6 h-6 rounded-full object-cover">
-                            <div class="absolute bottom-0 right-0 w-2 h-2 bg-[#23a55a] rounded-full"></div>
-                        </div>
-                        <span>@cordme</span>
-                    </div>
-                `;
+            if (currentUser && db.users[currentUser]) {
+                bootApp();
             } else {
-                const servers = getStoredServers(currentUser.email);
-                const s = servers[currentServer];
-                if (s && s.channels) {
-                    channelList.innerHTML = `<div class="text-xs font-bold uppercase text-[#949ba4] px-2 py-1 mb-1 flex justify-between items-center">
-                        <span>Text Channels</span>
-                        <button onclick="openCreateChannelModal()" class="hover:text-white"><i class="fa-solid fa-plus text-xs"></i></button>
-                    </div>`;
-
-                    s.channels.forEach(ch => {
-                        const isActive = currentChannel === ch.id;
-                        const div = document.createElement('div');
-                        div.className = `flex items-center gap-2 px-2 py-2 rounded cursor-pointer font-medium ${isActive ? 'bg-[#404249] text-white' : 'text-[#949ba4] hover:bg-[#35373c] hover:text-[#dbdee1]'}`;
-                        div.onclick = () => switchChannel(ch.id);
-                        div.innerHTML = `
-                            <i class="fa-solid fa-hashtag text-sm"></i>
-                            <span class="truncate">${ch.name}</span>
-                        `;
-                        channelList.appendChild(div);
-                    });
-                }
+                document.getElementById('auth-screen').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('hidden');
             }
+        };
+
+        function bootApp() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            
+            updateUserFooter();
+            renderServersList();
+            switchToServer('dm');
         }
 
-        function switchChannel(channelId) {
-            currentChannel = channelId;
-            document.getElementById('chat-header-title').textContent = channelId;
-            document.getElementById('message-input').placeholder = `Message ${channelId}`;
-            renderChannels();
-            renderMessages();
+        function updateUserFooter() {
+            const user = db.users[currentUser];
+            if (!user) return;
+            document.getElementById('footer-username').innerText = user.username;
+            document.getElementById('footer-avatar').style.backgroundImage = `url('${user.pfp}')`;
+            document.getElementById('member-self-name').innerText = user.username;
+            document.getElementById('member-self-avatar').style.backgroundImage = `url('${user.pfp}')`;
         }
 
-        function renderMessages() {
-            const container = document.getElementById('message-container');
+        // Servers & Channels Logic
+        function renderServersList() {
+            const container = document.getElementById('server-list-container');
             container.innerHTML = '';
-            const allMsgs = getStoredMessages(currentUser.email);
-            const key = `${currentServer}_${currentChannel}`;
-            const msgs = allMsgs[key] || [];
+
+            for (let sId in db.servers) {
+                const server = db.servers[sId];
+                if (server.members && server.members.includes(currentUser)) {
+                    const iconEl = document.createElement('div');
+                    iconEl.className = `server-icon ${currentServerId === sId ? 'active' : ''}`;
+                    iconEl.innerText = server.name.charAt(0).toUpperCase();
+                    if (server.icon) {
+                        iconEl.style.backgroundImage = `url('${server.icon}')`;
+                        iconEl.innerText = '';
+                    }
+                    iconEl.onclick = () => switchToServer(sId);
+                    container.appendChild(iconEl);
+                }
+            }
+        }
+
+        function switchToServer(sId) {
+            currentServerId = sId;
+            renderServersList();
+
+            const textContainer = document.getElementById('text-channels-container');
+            const voiceContainer = document.getElementById('voice-channels-container');
+            textContainer.innerHTML = '';
+            voiceContainer.innerHTML = '';
+
+            if (sId === 'dm') {
+                document.getElementById('current-server-name').innerHTML = '<span>Direct Messages</span>';
+                
+                const dmItem = document.createElement('div');
+                dmItem.className = 'channel-item active';
+                dmItem.innerText = '@cordme';
+                dmItem.onclick = () => switchChannel('dm-cordme', '@cordme');
+                textContainer.appendChild(dmItem);
+                
+                switchChannel('dm-cordme', '@cordme');
+            } else {
+                const server = db.servers[sId];
+                document.getElementById('current-server-name').innerHTML = `<span>${server.name}</span><span style="font-size: 10px;">v</span>`;
+                
+                if (server.channels) {
+                    server.channels.forEach(ch => {
+                        const chEl = document.createElement('div');
+                        chEl.className = `channel-item ${currentChannelId === ch.id ? 'active' : ''}`;
+                        chEl.innerText = `# ${ch.name}`;
+                        chEl.onclick = () => switchChannel(ch.id, ch.name);
+                        textContainer.appendChild(chEl);
+                    });
+                    if (server.channels.length > 0) {
+                        switchChannel(server.channels[0].id, server.channels[0].name);
+                    }
+                }
+            }
+        }
+
+        function switchChannel(chId, chName) {
+            currentChannelId = chId;
+            document.getElementById('current-channel-title').innerText = currentServerId === 'dm' ? chName : `# ${chName}`;
+            
+            // Highlight active channel
+            document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+            event && event.currentTarget && event.currentTarget.classList.add('active');
+
+            renderMessages();
+        }
+
+        // Messaging Logic
+        function renderMessages() {
+            const container = document.getElementById('chat-messages-container');
+            container.innerHTML = '';
+
+            const key = `${currentServerId}_${currentChannelId}`;
+            const msgs = db.messages[key] || [];
 
             msgs.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'flex gap-4 items-start hover:bg-[#2e3035] -mx-4 px-4 py-1 rounded';
-                div.innerHTML = `
-                    <img src="${m.pfp}" class="w-10 h-10 rounded-full object-cover mt-0.5" onerror="this.src='https://placehold.co/40x40/5865f2/ffffff?text=U'">
-                    <div class="flex flex-col flex-1 min-w-0">
-                        <div class="flex items-center gap-2">
-                            <span class="font-bold text-white text-sm hover:underline cursor-pointer">${m.sender}</span>
-                            <span class="text-[10px] text-[#949ba4]">${m.time}</span>
-                        </div>
-                        <p class="text-sm text-[#dbdee1] break-words">${escapeHTML(m.text)}</p>
-                    </div>
-                `;
-                container.appendChild(div);
+                const group = document.createElement('div');
+                group.className = 'message-group';
+
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                const senderObj = db.users[m.sender];
+                avatar.style.backgroundImage = `url('${senderObj ? senderObj.pfp : getRandomPfp()}')`;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'message-content-wrapper';
+
+                const header = document.createElement('div');
+                header.className = 'message-header-line';
+                header.innerHTML = `<span class="message-author">${m.sender}</span><span class="message-timestamp">${m.time}</span>`;
+
+                const text = document.createElement('div');
+                text.className = 'message-text';
+                text.innerText = m.text;
+
+                wrapper.appendChild(header);
+                wrapper.appendChild(text);
+                group.appendChild(avatar);
+                group.appendChild(wrapper);
+                container.appendChild(group);
             });
 
             container.scrollTop = container.scrollHeight;
         }
 
-        function renderMembers() {
-            const memberList = document.getElementById('member-list');
-            memberList.innerHTML = '';
-            let members = [];
-
-            if (currentServer === 'home') {
-                members = [{ name: '@cordme', pfp: 'https://placehold.co/32x32/5865f2/ffffff?text=C' }, { name: currentUser.username, pfp: currentUser.pfp }];
-            } else {
-                const servers = getStoredServers(currentUser.email);
-                const s = servers[currentServer];
-                members = s ? s.members.map(m => ({ name: m, pfp: 'https://placehold.co/32x32/5865f2/ffffff?text=' + m.charAt(0) })) : [{ name: currentUser.username, pfp: currentUser.pfp }];
-            }
-
-            document.getElementById('online-count').textContent = members.length;
-
-            members.forEach(mem => {
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-3 px-2 py-1.5 rounded hover:bg-[#35373c] cursor-pointer group';
-                div.innerHTML = `
-                    <div class="relative">
-                        <img src="${mem.pfp}" class="w-8 h-8 rounded-full object-cover">
-                        <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#23a55a] border-2 border-[#2b2d31] rounded-full"></div>
-                    </div>
-                    <span class="text-sm font-medium text-[#dbdee1] group-hover:text-white truncate">${mem.name}</span>
-                `;
-                memberList.appendChild(div);
-            });
-        }
-
-        function handleMessageKeyDown(e) {
+        function handleChatKeyDown(e) {
             if (e.key === 'Enter') {
-                sendMessage();
+                const input = document.getElementById('chat-input-field');
+                const text = input.value.trim();
+                if (!text) return;
+
+                const key = `${currentServerId}_${currentChannelId}`;
+                if (!db.messages[key]) db.messages[key] = [];
+
+                const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                db.messages[key].push({
+                    sender: currentUser,
+                    text: text,
+                    time: timeStr
+                });
+
+                input.value = '';
+                saveDB();
+                renderMessages();
+
+                // Auto-respond simulation if chatting with @cordme
+                if (currentServerId === 'dm' && currentChannelId === 'dm-cordme') {
+                    setTimeout(() => {
+                        db.messages[key].push({
+                            sender: '@cordme',
+                            text: `Hello ${currentUser}! I received your message: "${text}".`,
+                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        });
+                        saveDB();
+                        renderMessages();
+                    }, 1000);
+                }
             }
         }
 
-        function sendMessage() {
-            const input = document.getElementById('message-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            const allMsgs = getStoredMessages(currentUser.email);
-            const key = `${currentServer}_${currentChannel}`;
-            if (!allMsgs[key]) allMsgs[key] = [];
-
-            const now = new Date();
-            const timeStr = `Today at ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-
-            // Push User Message
-            allMsgs[key].push({
-                sender: currentUser.username,
-                pfp: currentUser.pfp,
-                text: text,
-                time: timeStr
-            });
-
-            saveStoredMessages(currentUser.email, allMsgs);
-            input.value = '';
-            renderMessages();
-
-            // Automated Bot Reply if messaging @cordme
-            if (currentServer === 'home' && currentChannel === '@cordme') {
-                setTimeout(() => {
-                    const botReplies = [
-                        "Thanks for messaging cordme! Everything is running smoothly.",
-                        "I have received your message. Let me know if you need any assistance.",
-                        "cordme is fully functional and saved locally.",
-                        "Hello there! Enjoy chatting on cordme."
-                    ];
-                    const replyText = botReplies[Math.floor(Math.random() * botReplies.length)];
-                    const replyTime = `Today at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-
-                    allMsgs[key].push({
-                        sender: '@cordme',
-                        pfp: 'https://placehold.co/40x40/5865f2/ffffff?text=CORDME',
-                        text: replyText,
-                        time: replyTime
-                    });
-                    saveStoredMessages(currentUser.email, allMsgs);
-                    renderMessages();
-                }, 1000);
-            }
-        }
-
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-            );
-        }
-
-        function openSettingsModal() {
-            document.getElementById('settings-modal').classList.remove('hidden');
-            updateUserUI();
-        }
-
-        function closeSettingsModal() {
-            document.getElementById('settings-modal').classList.add('hidden');
-        }
-
-        function switchSettingsTab(tab) {
-            const accTab = document.getElementById('settings-tab-account');
-            const profTab = document.getElementById('settings-tab-profile');
-            const btnAcc = document.getElementById('tab-btn-account');
-            const btnProf = document.getElementById('tab-btn-profile');
-
-            if (tab === 'account') {
-                accTab.classList.remove('hidden');
-                profTab.classList.add('hidden');
-                btnAcc.className = 'w-48 text-left px-3 py-2 rounded font-medium text-white bg-[#35373c] transition';
-                btnProf.className = 'w-48 text-left px-3 py-2 rounded font-medium text-[#b5bac1] hover:bg-[#35373c] hover:text-white transition';
-            } else {
-                accTab.classList.add('hidden');
-                profTab.classList.remove('hidden');
-                btnProf.className = 'w-48 text-left px-3 py-2 rounded font-medium text-white bg-[#35373c] transition';
-                btnAcc.className = 'w-48 text-left px-3 py-2 rounded font-medium text-[#b5bac1] hover:bg-[#35373c] hover:text-white transition';
-            }
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Url = e.target.result;
-                updateUserPfp(base64Url);
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function applyPfpUrl() {
-            const url = document.getElementById('pfp-url-input').value.trim();
-            if (!url) return;
-            updateUserPfp(url);
-        }
-
-        function assignRandomDefaultAvatarFromZip() {
-            const randomPfp = getRandomAvatar();
-            updateUserPfp(randomPfp);
-            document.getElementById('pfp-url-input').value = randomPfp;
-        }
-
-        function updateUserPfp(newPfpUrl) {
-            if (!currentUser) return;
-            currentUser.pfp = newPfpUrl;
-
-            // Update user in storage DB
-            const users = getStoredUsers();
-            if (users[currentUser.email]) {
-                users[currentUser.email].pfp = newPfpUrl;
-                saveStoredUsers(users);
-            }
-
-            // Update session storage and cookies
-            setCookie('cordme_session', currentUser.email, 7);
-            localStorage.setItem('cordme_current_user', JSON.stringify(currentUser));
-
-            updateUserUI();
-            renderMessages();
-            renderMembers();
+        // Server Dropdown & Modals
+        function toggleServerDropdown() {
+            if (currentServerId === 'dm') return;
+            const menu = document.getElementById('server-dropdown');
+            menu.classList.toggle('hidden');
         }
 
         function openCreateServerModal() {
             document.getElementById('create-server-modal').classList.remove('hidden');
         }
 
-        function closeCreateServerModal() {
-            document.getElementById('create-server-modal').classList.add('hidden');
-            document.getElementById('new-server-name').value = '';
+        function openJoinServerModal() {
+            document.getElementById('join-server-modal').classList.remove('hidden');
         }
 
-        function createServer() {
-            const name = document.getElementById('new-server-name').value.trim();
+        function openCreateChannelModal() {
+            document.getElementById('server-dropdown').classList.add('hidden');
+            document.getElementById('create-channel-modal').classList.remove('hidden');
+        }
+
+        function openInviteModal() {
+            document.getElementById('server-dropdown').classList.add('hidden');
+            document.getElementById('invite-code-display').value = currentServerId;
+            document.getElementById('invite-modal').classList.remove('hidden');
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
+            document.getElementById('server-dropdown').classList.add('hidden');
+        }
+
+        function submitCreateServer() {
+            const name = document.getElementById('new-server-name-input').value.trim();
+            const icon = document.getElementById('new-server-icon-input').value.trim();
             if (!name) return;
 
-            const servers = getStoredServers(currentUser.email);
-            const serverId = 'server_' + Date.now();
-            const initials = name.split(' ').map(w => w.charAt(0)).join('').substring(0, 2).toUpperCase();
-
-            servers[serverId] = {
-                id: serverId,
+            const sId = 'server_' + Math.random().toString(36).substring(2, 9);
+            db.servers[sId] = {
+                id: sId,
                 name: name,
-                icon: `https://placehold.co/48x48/5865f2/ffffff?text=${initials}`,
+                icon: icon,
+                owner: currentUser,
+                members: [currentUser],
                 channels: [
-                    { id: 'general', name: 'general', type: 'text' }
-                ],
-                members: [currentUser.username]
+                    { id: 'ch_' + Math.random().toString(36).substring(2, 6), name: 'general' }
+                ]
             };
 
-            saveStoredServers(currentUser.email, servers);
-            closeCreateServerModal();
-            switchServer(serverId);
+            saveDB();
+            closeModals();
+            renderServersList();
+            switchToServer(sId);
+        }
+
+        function submitJoinServer() {
+            const code = document.getElementById('join-invite-input').value.trim();
+            if (!db.servers[code]) {
+                alert('Invalid invite code or server not found.');
+                return;
+            }
+
+            if (!db.servers[code].members.includes(currentUser)) {
+                db.servers[code].members.push(currentUser);
+                saveDB();
+            }
+
+            closeModals();
+            renderServersList();
+            switchToServer(code);
+        }
+
+        function submitCreateChannel() {
+            const name = document.getElementById('new-channel-name-input').value.trim();
+            if (!name || currentServerId === 'dm') return;
+
+            const chId = 'ch_' + Math.random().toString(36).substring(2, 6);
+            db.servers[currentServerId].channels.push({ id: chId, name: name });
+
+            saveDB();
+            closeModals();
+            switchToServer(currentServerId);
+        }
+
+        function leaveOrDeleteServer() {
+            if (currentServerId === 'dm') return;
+            const server = db.servers[currentServerId];
+            
+            if (server.owner === currentUser) {
+                delete db.servers[currentServerId];
+            } else {
+                server.members = server.members.filter(m => m !== currentUser);
+            }
+
+            saveDB();
+            closeModals();
+            switchToServer('dm');
+            renderServersList();
+        }
+
+        // Settings Suite
+        function openSettings() {
+            document.getElementById('settings-overlay').classList.remove('hidden');
+            switchSettingsTab('account');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-overlay').classList.add('hidden');
+            updateUserFooter();
+        }
+
+        function switchSettingsTab(tab) {
+            document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active'));
+            event && event.currentTarget && event.currentTarget.classList.add('active');
+
+            const container = document.getElementById('settings-content-container');
+            const user = db.users[currentUser];
+
+            if (tab === 'account') {
+                container.innerHTML = `
+                    <div class="settings-section-title">My Account</div>
+                    <div class="profile-card-edit">
+                        <div class="profile-banner-edit"></div>
+                        <div class="profile-body-edit">
+                            <div class="profile-avatar-large" style="background-image: url('${user.pfp}')"></div>
+                            <div style="margin-left: 96px;">
+                                <div style="font-size: 18px; font-weight: 700; color: white;">${user.username}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-top: 20px;">
+                        <label>Change Profile Picture URL</label>
+                        <input type="text" id="settings-pfp-input" value="${user.pfp}" placeholder="https://...">
+                        <button class="btn-primary" style="margin-top: 10px;" onclick="updateProfilePic()">Save Changes</button>
+                    </div>
+                `;
+            } else if (tab === 'profile') {
+                container.innerHTML = `
+                    <div class="settings-section-title">User Profile</div>
+                    <div class="input-group">
+                        <label>About Me / Bio</label>
+                        <input type="text" id="settings-bio-input" value="${user.bio || ''}" placeholder="Write something about yourself...">
+                        <button class="btn-primary" style="margin-top: 10px;" onclick="updateBio()">Save Bio</button>
+                    </div>
+                `;
+            } else if (tab === 'appearance') {
+                container.innerHTML = `
+                    <div class="settings-section-title">Appearance</div>
+                    <div style="color: var(--text-muted);">Theme mode is currently locked to Dark Discord Theme.</div>
+                `;
+            } else if (tab === 'voice') {
+                container.innerHTML = `
+                    <div class="settings-section-title">Voice & Video</div>
+                    <div style="color: var(--text-muted);">Default microphone and headset successfully configured.</div>
+                `;
+            }
+        }
+
+        function updateProfilePic() {
+            const newUrl = document.getElementById('settings-pfp-input').value.trim();
+            if (newUrl) {
+                db.users[currentUser].pfp = newUrl;
+                saveDB();
+                alert('Profile picture updated successfully!');
+                updateUserFooter();
+            }
+        }
+
+        function updateBio() {
+            const newBio = document.getElementById('settings-bio-input').value.trim();
+            db.users[currentUser].bio = newBio;
+            saveDB();
+            alert('Bio updated successfully!');
         }
     </script>
 </body>
