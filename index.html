@@ -3,55 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>cordme</title>
+    <title>cordme & tubeme ecosystem</title>
     <!-- JSZip for handling random pfp zip files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         :root {
-            --bg-primary: #313338;
-            --bg-secondary: #2b2d31;
-            --bg-tertiary: #1e1f22;
-            --bg-floating: #111214;
-            --interactive-normal: #b5bac1;
-            --interactive-hover: #dbdee1;
-            --interactive-active: #ffffff;
-            --text-normal: #dbdee1;
-            --text-muted: #949ba4;
-            --channels-default: #949ba4;
-            --brand: #5865f2;
-            --brand-hover: #4752c4;
-            --danger: #f23f43;
-            --danger-hover: #d83c3e;
-            --success: #23a55a;
-            --border-subtle: #3f4147;
+            --retro-bg: #121212;
+            --retro-panel: #1e1e1e;
+            --retro-border: #333333;
+            --retro-green: #00ff66;
+            --retro-green-hover: #00cc52;
+            --retro-text: #00ff66;
+            --retro-text-dim: #888888;
+            --retro-white: #ffffff;
+            --retro-danger: #ff3333;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         body, html {
             width: 100%;
             height: 100vh;
             overflow: hidden;
-            background-color: var(--bg-primary);
-            color: var(--text-normal);
+            background-color: var(--retro-bg);
+            color: var(--retro-text);
         }
 
-        /* Utility Hidden */
         .hidden { display: none !important; }
 
-        /* Auth Screen */
+        /* AUTH SCREEN */
         #auth-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(135deg, #1e1f22 0%, #2b2d31 100%);
+            background-color: var(--retro-bg);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -59,301 +51,223 @@
         }
 
         .auth-card {
-            background-color: var(--bg-secondary);
+            background-color: var(--retro-panel);
+            border: 2px solid var(--retro-green);
             padding: 32px;
-            border-radius: 8px;
-            width: 480px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            width: 420px;
+            box-shadow: 6px 6px 0px var(--retro-green);
         }
 
         .auth-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--interactive-active);
+            font-size: 22px;
+            font-weight: bold;
+            color: var(--retro-green);
             text-align: center;
             margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .auth-subtitle {
-            font-size: 14px;
-            color: var(--text-muted);
+            font-size: 12px;
+            color: var(--retro-text-dim);
             text-align: center;
             margin-bottom: 24px;
         }
 
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .input-group label {
             display: block;
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 11px;
+            color: var(--retro-text-dim);
             text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .input-group input {
             width: 100%;
-            background-color: var(--bg-tertiary);
-            border: 1px solid transparent;
-            border-radius: 4px;
+            background-color: var(--retro-bg);
+            border: 1px solid var(--retro-green);
             padding: 10px;
-            color: var(--text-normal);
-            font-size: 16px;
+            color: var(--retro-white);
+            font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
         }
 
-        .input-group input:focus {
-            border-color: var(--brand);
-        }
-
-        .btn {
+        .btn-retro {
             width: 100%;
-            background-color: var(--brand);
-            color: white;
+            background-color: var(--retro-green);
+            color: var(--retro-bg);
             border: none;
-            border-radius: 4px;
             padding: 12px;
-            font-size: 16px;
-            font-weight: 500;
+            font-weight: bold;
+            font-size: 14px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            text-transform: uppercase;
+            transition: background-color 0.1s;
         }
 
-        .btn:hover {
-            background-color: var(--brand-hover);
+        .btn-retro:hover {
+            background-color: var(--retro-green-hover);
         }
 
         .auth-switch {
             margin-top: 16px;
-            font-size: 14px;
-            color: var(--text-muted);
+            font-size: 12px;
             text-align: center;
+            color: var(--retro-text-dim);
         }
 
         .auth-switch span {
-            color: var(--brand);
+            color: var(--retro-green);
             cursor: pointer;
-        }
-
-        .auth-switch span:hover {
             text-decoration: underline;
         }
 
-        /* App Layout */
-        #app-container {
-            display: flex;
+        /* ECOSYSTEM APPS CONTAINER */
+        .app-view {
             width: 100vw;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Ecosystem Navbar */
+        .ecosystem-nav {
+            height: 40px;
+            background-color: var(--retro-panel);
+            border-bottom: 2px solid var(--retro-green);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .ecosystem-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--retro-green);
+            text-transform: uppercase;
+        }
+
+        .ecosystem-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .eco-tab-btn {
+            background-color: var(--retro-bg);
+            border: 1px solid var(--retro-green);
+            color: var(--retro-green);
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .eco-tab-btn.active, .eco-tab-btn:hover {
+            background-color: var(--retro-green);
+            color: var(--retro-bg);
+        }
+
+        .eco-close-btn {
+            background-color: var(--retro-danger);
+            border: 1px solid var(--retro-white);
+            color: var(--retro-white);
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* APP 1: CORDME */
+        #cordme-container {
+            flex: 1;
+            display: flex;
             overflow: hidden;
         }
 
-        /* Servers Sidebar */
         .servers-sidebar {
-            width: 72px;
-            background-color: var(--bg-tertiary);
+            width: 64px;
+            background-color: var(--retro-panel);
+            border-right: 2px solid var(--retro-green);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding-top: 12px;
             gap: 8px;
             flex-shrink: 0;
-            border-right: 1px solid var(--border-subtle);
         }
 
         .server-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background-color: var(--bg-primary);
+            width: 44px;
+            height: 44px;
+            border: 1px solid var(--retro-green);
+            background-color: var(--retro-bg);
             display: flex;
             justify-content: center;
             align-items: center;
-            color: var(--text-normal);
-            font-weight: 600;
+            color: var(--retro-green);
+            font-weight: bold;
             cursor: pointer;
-            position: relative;
-            transition: border-radius 0.2s, background-color 0.2s;
-            overflow: hidden;
             background-size: cover;
             background-position: center;
         }
 
         .server-icon:hover, .server-icon.active {
-            border-radius: 16px;
-            background-color: var(--brand);
-            color: white;
+            background-color: var(--retro-green);
+            color: var(--retro-bg);
         }
 
-        .server-icon::before {
-            content: '';
-            position: absolute;
-            left: -16px;
-            width: 8px;
-            height: 20px;
-            background-color: white;
-            border-radius: 0 4px 4px 0;
-            top: 14px;
-            transform: scaleY(0);
-            transition: transform 0.2s;
-        }
-
-        .server-icon.active::before {
-            transform: scaleY(1);
-        }
-
-        .server-separator {
-            width: 32px;
-            height: 2px;
-            background-color: var(--border-subtle);
-            border-radius: 1px;
-        }
-
-        /* Channels Sidebar */
         .channels-sidebar {
-            width: 240px;
-            background-color: var(--bg-secondary);
+            width: 220px;
+            background-color: var(--retro-panel);
+            border-right: 2px solid var(--retro-green);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            border-right: 1px solid var(--border-subtle);
         }
 
         .server-header {
-            height: 48px;
-            padding: 0 16px;
+            height: 40px;
+            padding: 0 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-weight: 700;
-            border-bottom: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--retro-border);
+            font-weight: bold;
+            font-size: 13px;
             cursor: pointer;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-
-        .server-header:hover {
-            background-color: rgba(255,255,255,0.03);
         }
 
         .channels-list {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 8px;
-        }
-
-        .channels-category {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            padding: 0 8px 4px;
-            margin-top: 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 12px;
         }
 
         .channel-item {
-            padding: 8px 12px;
-            border-radius: 4px;
-            color: var(--channels-default);
+            padding: 6px 8px;
+            color: var(--retro-text-dim);
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 2px;
+            font-size: 13px;
+            margin-bottom: 4px;
         }
 
-        .channel-item:hover {
-            background-color: rgba(255,255,255,0.04);
-            color: var(--interactive-hover);
+        .channel-item:hover, .channel-item.active {
+            color: var(--retro-green);
+            background-color: rgba(0, 255, 102, 0.1);
         }
 
-        .channel-item.active {
-            background-color: rgba(255,255,255,0.08);
-            color: var(--interactive-active);
-        }
-
-        /* User Footer Panel inside Channels Sidebar */
-        .user-footer {
-            height: 56px;
-            background-color: rgba(0,0,0,0.2);
-            padding: 0 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .user-footer-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-size: cover;
-            background-position: center;
-            background-color: var(--bg-primary);
-        }
-
-        .user-footer-info {
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .user-footer-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--interactive-active);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .user-footer-tag {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .user-footer-actions {
-            display: flex;
-            gap: 4px;
-        }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            color: var(--interactive-normal);
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 4px;
-        }
-
-        .icon-btn:hover {
-            background-color: rgba(255,255,255,0.05);
-            color: var(--interactive-hover);
-        }
-
-        /* Main Chat Area */
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: var(--bg-primary);
-            position: relative;
-        }
-
-        .chat-header {
-            height: 48px;
-            padding: 0 16px;
-            display: flex;
-            align-items: center;
-            border-bottom: 1px solid var(--border-subtle);
-            font-weight: 600;
-            gap: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            background-color: var(--retro-bg);
         }
 
         .chat-messages {
@@ -362,378 +276,99 @@
             padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
         }
 
-        .message-group {
-            display: flex;
-            gap: 16px;
-            margin-top: 4px;
-        }
-
-        .message-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-size: cover;
-            background-position: center;
-            flex-shrink: 0;
-            background-color: var(--bg-secondary);
-        }
-
-        .message-content-wrapper {
-            flex: 1;
-        }
-
-        .message-header-line {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            margin-bottom: 2px;
+        .message-row {
+            font-size: 13px;
+            line-height: 1.4;
         }
 
         .message-author {
-            font-weight: 600;
-            color: var(--interactive-active);
+            color: var(--retro-green);
+            font-weight: bold;
         }
 
-        .message-timestamp {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        .message-text {
-            color: var(--text-normal);
-            font-size: 14px;
-            line-height: 1.375rem;
-            word-break: break-word;
-        }
-
-        .chat-input-container {
-            padding: 0 16px 24px 16px;
+        .message-time {
+            color: var(--retro-text-dim);
+            font-size: 10px;
+            margin-left: 6px;
         }
 
         .chat-input-box {
-            background-color: var(--bg-secondary);
-            border-radius: 8px;
-            padding: 11px 16px;
-            display: flex;
-            align-items: center;
+            padding: 12px;
+            background-color: var(--retro-panel);
+            border-top: 1px solid var(--retro-green);
         }
 
         .chat-input-box input {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-normal);
-            font-size: 15px;
+            width: 100%;
+            background-color: var(--retro-bg);
+            border: 1px solid var(--retro-green);
+            padding: 10px;
+            color: var(--retro-white);
+            font-size: 13px;
             outline: none;
         }
 
-        /* Members Sidebar */
-        .members-sidebar {
-            width: 240px;
-            background-color: var(--bg-secondary);
-            border-left: 1px solid var(--border-subtle);
-            padding: 16px;
+        /* APP 2: TUBEME */
+        #tubeme-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--retro-bg);
             overflow-y: auto;
-            flex-shrink: 0;
-        }
-
-        .member-category {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
-        .member-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 6px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-bottom: 2px;
-        }
-
-        .member-item:hover {
-            background-color: rgba(255,255,255,0.04);
-        }
-
-        .member-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
-
-        .member-status {
-            position: absolute;
-            bottom: -2px;
-            right: -2px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: var(--success);
-            border: 2px solid var(--bg-secondary);
-        }
-
-        .member-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--interactive-normal);
-        }
-
-        .member-item:hover .member-name {
-            color: var(--interactive-hover);
-        }
-
-        /* Modals & Settings Overlay */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .modal-card {
-            background-color: var(--bg-primary);
-            width: 480px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.5);
-        }
-
-        .modal-header {
-            padding: 24px 24px 0 24px;
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--interactive-active);
-            margin-bottom: 8px;
-        }
-
-        .modal-body {
             padding: 24px;
         }
 
-        .modal-footer {
-            background-color: var(--bg-secondary);
-            padding: 16px 24px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .btn-secondary:hover {
-            text-decoration: underline;
-        }
-
-        .btn-primary {
-            background-color: var(--brand);
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--brand-hover);
-        }
-
-        /* Full Settings Suite */
-        #settings-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--bg-primary);
-            z-index: 3000;
-            display: flex;
-        }
-
-        .settings-sidebar {
-            width: 232px;
-            background-color: var(--bg-secondary);
-            padding: 60px 20px 60px 60px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .settings-category-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            padding: 6px 10px;
-            margin-top: 12px;
-        }
-
-        .settings-nav-item {
-            padding: 10px;
-            border-radius: 4px;
-            color: var(--interactive-normal);
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .settings-nav-item:hover {
-            background-color: rgba(255,255,255,0.04);
-            color: var(--interactive-hover);
-        }
-
-        .settings-nav-item.active {
-            background-color: rgba(255,255,255,0.08);
-            color: var(--interactive-active);
-        }
-
-        .settings-nav-item.danger {
-            color: var(--danger);
-        }
-
-        .settings-nav-item.danger:hover {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .settings-content-area {
-            flex: 1;
-            padding: 60px 40px;
-            overflow-y: auto;
-            position: relative;
-            max-width: 800px;
-        }
-
-        .settings-close-btn {
-            position: absolute;
-            top: 60px;
-            right: 60px;
-            border: 2px solid var(--text-muted);
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--text-muted);
-        }
-
-        .settings-close-btn:hover {
-            border-color: var(--interactive-active);
-            color: var(--interactive-active);
-        }
-
-        .settings-section-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--interactive-active);
-            margin-bottom: 20px;
-        }
-
-        .profile-banner-edit {
-            background-color: var(--brand);
-            height: 100px;
-            border-radius: 8px 8px 0 0;
-            position: relative;
-        }
-
-        .profile-card-edit {
-            background-color: var(--bg-secondary);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 24px;
-        }
-
-        .profile-body-edit {
-            padding: 16px;
-            position: relative;
+        .tubeme-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--retro-green);
+            padding-bottom: 12px;
         }
 
-        .profile-avatar-large {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 6px solid var(--bg-secondary);
+        .tubeme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card {
+            background-color: var(--retro-panel);
+            border: 1px solid var(--retro-green);
+            padding: 12px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .video-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 4px 4px 0px var(--retro-green);
+        }
+
+        .video-thumb {
+            width: 100%;
+            height: 140px;
+            background-color: var(--retro-bg);
+            border: 1px solid var(--retro-border);
+            margin-bottom: 10px;
             background-size: cover;
             background-position: center;
-            position: absolute;
-            top: -46px;
-            left: 16px;
-            background-color: var(--bg-primary);
         }
 
-        /* Dropdowns & Menus */
-        .server-dropdown-menu {
-            position: absolute;
-            top: 52px;
-            left: 80px;
-            background-color: var(--bg-floating);
-            border-radius: 4px;
-            width: 220px;
-            padding: 6px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-            z-index: 100;
+        .video-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--retro-white);
+            margin-bottom: 4px;
         }
 
-        .dropdown-item {
-            padding: 8px 10px;
-            border-radius: 4px;
-            font-size: 14px;
-            color: var(--interactive-normal);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--brand);
-            color: white;
-        }
-
-        .dropdown-item.danger {
-            color: var(--danger);
-        }
-
-        .dropdown-item.danger:hover {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        .dropdown-separator {
-            height: 1px;
-            background-color: var(--border-subtle);
-            margin: 4px 0;
+        .video-creator {
+            font-size: 11px;
+            color: var(--retro-green);
         }
     </style>
 </head>
@@ -742,314 +377,130 @@
     <!-- AUTH SCREEN -->
     <div id="auth-screen">
         <div class="auth-card">
-            <div class="auth-title" id="auth-title">Welcome to cordme</div>
-            <div class="auth-subtitle" id="auth-subtitle">Connect and chat with your friends</div>
+            <div class="auth-title" id="auth-title">cordme & tubeme</div>
+            <div class="auth-subtitle" id="auth-subtitle">Retro Terminal Access</div>
             
             <div class="input-group">
                 <label>Username</label>
-                <input type="text" id="auth-username" placeholder="Enter your username">
+                <input type="text" id="auth-username" placeholder="Enter username...">
             </div>
             
             <div class="input-group">
                 <label>Password</label>
-                <input type="password" id="auth-password" placeholder="Enter your password">
+                <input type="password" id="auth-password" placeholder="Enter password...">
             </div>
 
-            <button class="btn" id="auth-submit-btn" onclick="handleAuthSubmit()">Log In</button>
+            <button class="btn-retro" id="auth-submit-btn" onclick="handleAuth()">Initialize Login</button>
             
             <div class="auth-switch" id="auth-switch-text">
-                Need an account? <span onclick="toggleAuthMode()">Register</span>
+                No account? <span onclick="toggleAuthMode()">Register profile</span>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
-    <div id="app-container" class="hidden">
-        <!-- SERVERS SIDEBAR -->
-        <div class="servers-sidebar" id="servers-sidebar">
-            <div class="server-icon" onclick="switchToServer('dm')" title="Direct Messages" id="dm-server-icon">DM</div>
-            <div class="server-separator"></div>
-            <div id="server-list-container" style="display: flex; flex-direction: column; gap: 8px; align-items: center; width: 100%;"></div>
-            <div class="server-icon" onclick="openCreateServerModal()" title="Add a Server" style="background-color: var(--bg-secondary); color: var(--success);">+</div>
-            <div class="server-icon" onclick="openJoinServerModal()" title="Join a Server" style="background-color: var(--bg-secondary); color: var(--interactive-hover);">#</div>
-        </div>
-
-        <!-- CHANNELS SIDEBAR -->
-        <div class="channels-sidebar">
-            <div class="server-header" id="current-server-name" onclick="toggleServerDropdown()">
-                <span>cordme</span>
-                <span style="font-size: 10px;">v</span>
-            </div>
-            
-            <!-- Server Dropdown Menu (Hidden by default) -->
-            <div id="server-dropdown" class="server-dropdown-menu hidden">
-                <div class="dropdown-item" onclick="openInviteModal()">Invite People</div>
-                <div class="dropdown-item" onclick="openServerSettingsModal()">Server Settings</div>
-                <div class="dropdown-item" onclick="openCreateChannelModal()">Create Channel</div>
-                <div class="dropdown-separator"></div>
-                <div class="dropdown-item danger" onclick="leaveOrDeleteServer()">Leave Server</div>
-            </div>
-
-            <div class="channels-list">
-                <div class="channels-category">
-                    <span>Text Channels</span>
-                    <span style="cursor: pointer;" onclick="openCreateChannelModal()">+</span>
-                </div>
-                <div id="text-channels-container"></div>
-
-                <div class="channels-category" style="margin-top: 24px;">
-                    <span>Voice Channels</span>
-                    <span>+</span>
-                </div>
-                <div id="voice-channels-container"></div>
-            </div>
-
-            <!-- User Footer -->
-            <div class="user-footer">
-                <div class="user-footer-avatar" id="footer-avatar"></div>
-                <div class="user-footer-info">
-                    <div class="user-footer-name" id="footer-username">User</div>
-                    <div class="user-footer-tag" id="footer-tag">Online</div>
-                </div>
-                <div class="user-footer-actions">
-                    <button class="icon-btn" onclick="openSettings()" title="User Settings">⚙</button>
-                </div>
+    <!-- MAIN APP ECOSYSTEM CONTAINER -->
+    <div id="ecosystem-container" class="app-view hidden">
+        <!-- Ecosystem Top Navigation Bar -->
+        <div class="ecosystem-nav">
+            <div class="ecosystem-title" id="eco-status-title">cordme // active session</div>
+            <div class="ecosystem-buttons">
+                <button class="eco-tab-btn active" id="btn-tab-cordme" onclick="switchEcosystemApp('cordme')">CordMe</button>
+                <button class="eco-tab-btn" id="btn-tab-tubeme" onclick="switchEcosystemApp('tubeme')">TubeMe</button>
+                <button class="eco-close-btn" onclick="handleLogout()">[ X Exit ]</button>
             </div>
         </div>
 
-        <!-- MAIN CHAT AREA -->
-        <div class="chat-area">
-            <div class="chat-header" id="current-channel-title"># general</div>
-            
-            <div class="chat-messages" id="chat-messages-container"></div>
-
-            <div class="chat-input-container">
+        <!-- APP 1: CORDME VIEW -->
+        <div id="cordme-container">
+            <div class="servers-sidebar">
+                <div class="server-icon active" onclick="switchServer('dm')" title="Direct Messages">DM</div>
+                <div class="server-icon" onclick="openCreateServer()" title="Create Server">+</div>
+            </div>
+            <div class="channels-sidebar">
+                <div class="server-header" id="current-server-title">Direct Messages</div>
+                <div class="channels-list" id="channels-list-container">
+                    <div class="channel-item active" onclick="switchChannel('dm-cordme', '@cordme')"># @cordme</div>
+                </div>
+            </div>
+            <div class="chat-area">
+                <div class="chat-messages" id="chat-messages-container"></div>
                 <div class="chat-input-box">
-                    <input type="text" id="chat-input-field" placeholder="Message #general" onkeydown="handleChatKeyDown(event)">
+                    <input type="text" id="chat-input" placeholder="Type message in terminal..." onkeydown="handleChatInput(event)">
                 </div>
             </div>
         </div>
 
-        <!-- MEMBERS SIDEBAR -->
-        <div class="members-sidebar" id="members-sidebar-container">
-            <div class="member-category">Online — 2</div>
-            <div class="member-item">
-                <div class="member-avatar" style="background-image: url('https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip')">
-                    <div class="member-status"></div>
+        <!-- APP 2: TUBEME VIEW -->
+        <div id="tubeme-container" class="hidden">
+            <div class="tubeme-header">
+                <div>
+                    <div style="font-size: 18px; font-weight: bold; color: var(--retro-green);">tubeme // retro video network</div>
+                    <div style="font-size: 11px; color: var(--retro-text-dim);">Content published by cordme users</div>
                 </div>
-                <div class="member-name">@cordme</div>
+                <button class="eco-tab-btn" onclick="publishVideoModal()">+ Publish Video</button>
             </div>
-            <div class="member-item">
-                <div class="member-avatar" id="member-self-avatar">
-                    <div class="member-status"></div>
-                </div>
-                <div class="member-name" id="member-self-name">You</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- SETTINGS SUITE OVERLAY -->
-    <div id="settings-overlay" class="hidden">
-        <div class="settings-sidebar">
-            <div class="settings-category-title">User Settings</div>
-            <div class="settings-nav-item active" onclick="switchSettingsTab('account')">My Account</div>
-            <div class="settings-nav-item" onclick="switchSettingsTab('profile')">Profiles</div>
-            <div class="settings-category-title">App Settings</div>
-            <div class="settings-nav-item" onclick="switchSettingsTab('appearance')">Appearance</div>
-            <div class="settings-nav-item" onclick="switchSettingsTab('voice')">Voice & Video</div>
-            <div class="settings-category-title" style="margin-top: 20px;"></div>
-            <div class="settings-nav-item danger" onclick="handleLogout()">Log Out</div>
-        </div>
-        <div class="settings-content-area" id="settings-content-container">
-            <!-- Dynamic settings content injected here -->
-        </div>
-        <div class="settings-close-btn" onclick="closeSettings()" title="Close">X</div>
-    </div>
-
-    <!-- MODALS -->
-    <!-- Create Server Modal -->
-    <div id="create-server-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title">Create Your Server</div>
-                <div style="font-size: 14px; color: var(--text-muted);">Your server is where you and your friends hang out. Make yours and start talking.</div>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label>Server Name</label>
-                    <input type="text" id="new-server-name-input" placeholder="My awesome server">
-                </div>
-                <div class="input-group">
-                    <label>Server Icon Image URL (Optional)</label>
-                    <input type="text" id="new-server-icon-input" placeholder="https://example.com/icon.png">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModals()">Cancel</button>
-                <button class="btn-primary" onclick="submitCreateServer()">Create</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Join Server Modal -->
-    <div id="join-server-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title">Join a Server</div>
-                <div style="font-size: 14px; color: var(--text-muted);">Enter an invite code to join an existing server</div>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label>Invite Code</label>
-                    <input type="text" id="join-invite-input" placeholder="e.g. cordme-xyz">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModals()">Cancel</button>
-                <button class="btn-primary" onclick="submitJoinServer()">Join Server</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Create Channel Modal -->
-    <div id="create-channel-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title">Create Channel</div>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <label>Channel Name</label>
-                    <input type="text" id="new-channel-name-input" placeholder="new-channel">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModals()">Cancel</button>
-                <button class="btn-primary" onclick="submitCreateChannel()">Create Channel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Invite Modal -->
-    <div id="invite-modal" class="modal-overlay hidden">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title">Invite Friends</div>
-                <div style="font-size: 14px; color: var(--text-muted);">Share this invite code with others:</div>
-            </div>
-            <div class="modal-body">
-                <div class="input-group">
-                    <input type="text" id="invite-code-display" readonly style="font-weight: bold; text-align: center;">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-primary" onclick="closeModals()">Done</button>
-            </div>
+            <div class="tubeme-grid" id="tubeme-grid-container"></div>
         </div>
     </div>
 
     <script>
-        // Mock Server Database & State
         let db = {
-            users: JSON.parse(localStorage.getItem('cordme_users')) || {
-                "@cordme": {
-                    username: "@cordme",
-                    password: "system_password",
-                    pfp: "https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip",
-                    bio: "Official System Account"
-                }
+            users: JSON.parse(localStorage.getItem('retro_users')) || {
+                "@cordme": { username: "@cordme", password: "sys" }
             },
-            servers: JSON.parse(localStorage.getItem('cordme_servers')) || {},
-            messages: JSON.parse(localStorage.getItem('cordme_messages')) || {}
+            servers: JSON.parse(localStorage.getItem('retro_servers')) || {
+                'server_general': { id: 'server_general', name: 'Retro Hub', owner: '@cordme', channels: [{ id: 'ch_gen', name: 'general' }] }
+            },
+            messages: JSON.parse(localStorage.getItem('retro_messages')) || {},
+            videos: JSON.parse(localStorage.getItem('retro_videos')) || [
+                { id: '1', title: 'Building a Custom C++ Engine', creator: '@cordme', thumb: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400' },
+                { id: '2', title: 'Roblox Luau UI Scripts', creator: 'amr010920', thumb: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400' }
+            ]
         };
 
-        let currentUser = localStorage.getItem('cordme_current_user') || null;
-        let currentServerId = 'dm';
-        let currentChannelId = 'dm-cordme';
-        let isRegisterMode = false;
-        let randomPfpPool = [];
+        let currentUser = localStorage.getItem('retro_current_user') || null;
+        let isRegister = false;
+        let activeApp = 'cordme';
+        let currentServer = 'dm';
+        let currentChannel = 'dm-cordme';
 
-        // Save DB
         function saveDB() {
-            localStorage.setItem('cordme_users', JSON.stringify(db.users));
-            localStorage.setItem('cordme_servers', JSON.stringify(db.servers));
-            localStorage.setItem('cordme_messages', JSON.stringify(db.messages));
-            if (currentUser) {
-                document.cookie = `cordme_session=${currentUser}; max-age=31536000; path=/`;
-            } else {
-                document.cookie = `cordme_session=; max-age=0; path=/`;
-            }
+            localStorage.setItem('retro_users', JSON.stringify(db.users));
+            localStorage.setItem('retro_servers', JSON.stringify(db.servers));
+            localStorage.setItem('retro_messages', JSON.stringify(db.messages));
+            localStorage.setItem('retro_videos', JSON.stringify(db.videos));
         }
 
-        // Fetch and load random profile pictures from ZIP
-        async function initRandomPfgs() {
-            try {
-                const response = await fetch('https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip');
-                const blob = await response.blob();
-                const zip = await JSZip.loadAsync(blob);
-                
-                for (let filename of Object.keys(zip.files)) {
-                    if (filename.toLowerCase().endsWith('.png') && !zip.files[filename].dir) {
-                        const imgData = await zip.files[filename].async('base64');
-                        randomPfpPool.push(`data:image/png;base64,${imgData}`);
-                    }
-                }
-            } catch (e) {
-                console.log('Fallback to default asset URL pool due to cross-origin or fetch restriction.');
-                randomPfpPool = [
-                    'https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip'
-                ];
+        window.onload = function() {
+            if (currentUser && db.users[currentUser]) {
+                bootApp();
             }
-        }
+        };
 
-        function getRandomPfp() {
-            if (randomPfpPool.length > 0) {
-                return randomPfpPool[Math.floor(Math.random() * randomPfpPool.length)];
-            }
-            return 'https://raw.githubusercontent.com/amr010920/cordme/website/random%20pfp.zip';
-        }
-
-        // Auth Switcher
         function toggleAuthMode() {
-            isRegisterMode = !isRegisterMode;
-            document.getElementById('auth-title').innerText = isRegisterMode ? 'Create an Account' : 'Welcome back!';
-            document.getElementById('auth-subtitle').innerText = isRegisterMode ? 'We are so excited to see you!' : 'We are so excited to see you again!';
-            document.getElementById('auth-submit-btn').innerText = isRegisterMode ? 'Continue' : 'Log In';
-            document.getElementById('auth-switch-text').innerHTML = isRegisterMode ? 
-                'Already have an account? <span onclick="toggleAuthMode()">Log In</span>' : 
-                'Need an account? <span onclick="toggleAuthMode()">Register</span>';
+            isRegister = !isRegister;
+            document.getElementById('auth-title').innerText = isRegister ? 'Register Profile' : 'cordme & tubeme';
+            document.getElementById('auth-submit-btn').innerText = isRegister ? 'Create Profile' : 'Initialize Login';
+            document.getElementById('auth-switch-text').innerHTML = isRegister ? 
+                'Have profile? <span onclick="toggleAuthMode()">Login</span>' : 
+                'No account? <span onclick="toggleAuthMode()">Register profile</span>';
         }
 
-        function handleAuthSubmit() {
-            const username = document.getElementById('auth-username').value.trim();
-            const password = document.getElementById('auth-password').value.trim();
+        function handleAuth() {
+            const u = document.getElementById('auth-username').value.trim();
+            const p = document.getElementById('auth-password').value.trim();
+            if (!u || !p) return alert('Enter credentials.');
 
-            if (!username || !password) {
-                alert('Please enter both username and password.');
-                return;
-            }
-
-            if (isRegisterMode) {
-                if (db.users[username]) {
-                    alert('Username already exists.');
-                    return;
-                }
-                db.users[username] = {
-                    username: username,
-                    password: password,
-                    pfp: getRandomPfp(),
-                    bio: 'Hey there! I am using cordme.'
-                };
+            if (isRegister) {
+                if (db.users[u]) return alert('User exists.');
+                db.users[u] = { username: u, password: p };
                 saveDB();
-                alert('Account created successfully! Please log in.');
+                alert('Registered! Please login.');
                 toggleAuthMode();
             } else {
-                if (!db.users[username] || db.users[username].password !== password) {
-                    alert('Invalid username or password.');
-                    return;
-                }
-                currentUser = username;
-                localStorage.setItem('cordme_current_user', currentUser);
+                if (!db.users[u] || db.users[u].password !== p) return alert('Invalid login.');
+                currentUser = u;
+                localStorage.setItem('retro_current_user', u);
                 saveDB();
                 bootApp();
             }
@@ -1057,362 +508,126 @@
 
         function handleLogout() {
             currentUser = null;
-            localStorage.removeItem('cordme_current_user');
-            saveDB();
+            localStorage.removeItem('retro_current_user');
             location.reload();
         }
 
-        // Boot Application
-        window.onload = async function() {
-            await initRandomPfgs();
-            
-            // Check session cookie or localStorage
-            if (!currentUser) {
-                const match = document.cookie.match(new RegExp('(^| )cordme_session=([^;]+)'));
-                if (match) currentUser = match[2];
-            }
-
-            if (currentUser && db.users[currentUser]) {
-                bootApp();
-            } else {
-                document.getElementById('auth-screen').classList.remove('hidden');
-                document.getElementById('app-container').classList.add('hidden');
-            }
-        };
-
         function bootApp() {
             document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden');
-            
-            updateUserFooter();
-            renderServersList();
-            switchToServer('dm');
+            document.getElementById('ecosystem-container').classList.remove('hidden');
+            renderServers();
+            switchServer('dm');
+            renderTubeMe();
         }
 
-        function updateUserFooter() {
-            const user = db.users[currentUser];
-            if (!user) return;
-            document.getElementById('footer-username').innerText = user.username;
-            document.getElementById('footer-avatar').style.backgroundImage = `url('${user.pfp}')`;
-            document.getElementById('member-self-name').innerText = user.username;
-            document.getElementById('member-self-avatar').style.backgroundImage = `url('${user.pfp}')`;
-        }
+        function switchEcosystemApp(app) {
+            activeApp = app;
+            document.getElementById('btn-tab-cordme').classList.remove('active');
+            document.getElementById('btn-tab-tubeme').classList.remove('active');
+            document.getElementById('cordme-container').classList.add('hidden');
+            document.getElementById('tubeme-container').classList.add('hidden');
 
-        // Servers & Channels Logic
-        function renderServersList() {
-            const container = document.getElementById('server-list-container');
-            container.innerHTML = '';
-
-            for (let sId in db.servers) {
-                const server = db.servers[sId];
-                if (server.members && server.members.includes(currentUser)) {
-                    const iconEl = document.createElement('div');
-                    iconEl.className = `server-icon ${currentServerId === sId ? 'active' : ''}`;
-                    iconEl.innerText = server.name.charAt(0).toUpperCase();
-                    if (server.icon) {
-                        iconEl.style.backgroundImage = `url('${server.icon}')`;
-                        iconEl.innerText = '';
-                    }
-                    iconEl.onclick = () => switchToServer(sId);
-                    container.appendChild(iconEl);
-                }
+            if (app === 'cordme') {
+                document.getElementById('btn-tab-cordme').classList.add('active');
+                document.getElementById('cordme-container').classList.remove('hidden');
+                document.getElementById('eco-status-title').innerText = 'cordme // active session';
+            } else {
+                document.getElementById('btn-tab-tubeme').classList.add('active');
+                document.getElementById('tubeme-container').classList.remove('hidden');
+                document.getElementById('eco-status-title').innerText = 'tubeme // video network';
+                renderTubeMe();
             }
         }
 
-        function switchToServer(sId) {
-            currentServerId = sId;
-            renderServersList();
+        function renderServers() {
+            const sidebar = document.querySelector('.servers-sidebar');
+            sidebar.innerHTML = `
+                <div class="server-icon ${currentServer === 'dm' ? 'active' : ''}" onclick="switchServer('dm')">DM</div>
+                <div class="server-icon ${currentServer === 'server_general' ? 'active' : ''}" onclick="switchServer('server_general')">R</div>
+            `;
+        }
 
-            const textContainer = document.getElementById('text-channels-container');
-            const voiceContainer = document.getElementById('voice-channels-container');
-            textContainer.innerHTML = '';
-            voiceContainer.innerHTML = '';
+        function switchServer(sId) {
+            currentServer = sId;
+            renderServers();
+            const list = document.getElementById('channels-list-container');
+            list.innerHTML = '';
 
             if (sId === 'dm') {
-                document.getElementById('current-server-name').innerHTML = '<span>Direct Messages</span>';
-                
-                const dmItem = document.createElement('div');
-                dmItem.className = 'channel-item active';
-                dmItem.innerText = '@cordme';
-                dmItem.onclick = () => switchChannel('dm-cordme', '@cordme');
-                textContainer.appendChild(dmItem);
-                
+                document.getElementById('current-server-title').innerText = 'Direct Messages';
+                list.innerHTML = `<div class="channel-item active" onclick="switchChannel('dm-cordme', '@cordme')"># @cordme</div>`;
                 switchChannel('dm-cordme', '@cordme');
             } else {
-                const server = db.servers[sId];
-                document.getElementById('current-server-name').innerHTML = `<span>${server.name}</span><span style="font-size: 10px;">v</span>`;
-                
-                if (server.channels) {
-                    server.channels.forEach(ch => {
-                        const chEl = document.createElement('div');
-                        chEl.className = `channel-item ${currentChannelId === ch.id ? 'active' : ''}`;
-                        chEl.innerText = `# ${ch.name}`;
-                        chEl.onclick = () => switchChannel(ch.id, ch.name);
-                        textContainer.appendChild(chEl);
-                    });
-                    if (server.channels.length > 0) {
-                        switchChannel(server.channels[0].id, server.channels[0].name);
-                    }
-                }
+                document.getElementById('current-server-title').innerText = 'Retro Hub';
+                list.innerHTML = `<div class="channel-item active" onclick="switchChannel('ch_gen', 'general')"># general</div>`;
+                switchChannel('ch_gen', 'general');
             }
         }
 
         function switchChannel(chId, chName) {
-            currentChannelId = chId;
-            document.getElementById('current-channel-title').innerText = currentServerId === 'dm' ? chName : `# ${chName}`;
-            
-            // Highlight active channel
-            document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
-            event && event.currentTarget && event.currentTarget.classList.add('active');
-
+            currentChannel = chId;
             renderMessages();
         }
 
-        // Messaging Logic
         function renderMessages() {
             const container = document.getElementById('chat-messages-container');
             container.innerHTML = '';
-
-            const key = `${currentServerId}_${currentChannelId}`;
+            const key = `${currentServer}_${currentChannel}`;
             const msgs = db.messages[key] || [];
 
             msgs.forEach(m => {
-                const group = document.createElement('div');
-                group.className = 'message-group';
-
-                const avatar = document.createElement('div');
-                avatar.className = 'message-avatar';
-                const senderObj = db.users[m.sender];
-                avatar.style.backgroundImage = `url('${senderObj ? senderObj.pfp : getRandomPfp()}')`;
-
-                const wrapper = document.createElement('div');
-                wrapper.className = 'message-content-wrapper';
-
-                const header = document.createElement('div');
-                header.className = 'message-header-line';
-                header.innerHTML = `<span class="message-author">${m.sender}</span><span class="message-timestamp">${m.time}</span>`;
-
-                const text = document.createElement('div');
-                text.className = 'message-text';
-                text.innerText = m.text;
-
-                wrapper.appendChild(header);
-                wrapper.appendChild(text);
-                group.appendChild(avatar);
-                group.appendChild(wrapper);
-                container.appendChild(group);
+                const row = document.createElement('div');
+                row.className = 'message-row';
+                row.innerHTML = `<span class="message-author">${m.sender}</span><span class="message-time">${m.time}</span><div style="color: #ccc;">${m.text}</div>`;
+                container.appendChild(row);
             });
-
             container.scrollTop = container.scrollHeight;
         }
 
-        function handleChatKeyDown(e) {
+        function handleChatInput(e) {
             if (e.key === 'Enter') {
-                const input = document.getElementById('chat-input-field');
+                const input = document.getElementById('chat-input');
                 const text = input.value.trim();
                 if (!text) return;
 
-                const key = `${currentServerId}_${currentChannelId}`;
+                const key = `${currentServer}_${currentChannel}`;
                 if (!db.messages[key]) db.messages[key] = [];
 
                 const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                db.messages[key].push({
-                    sender: currentUser,
-                    text: text,
-                    time: timeStr
-                });
-
+                db.messages[key].push({ sender: currentUser, text: text, time: timeStr });
                 input.value = '';
                 saveDB();
                 renderMessages();
-
-                // Auto-respond simulation if chatting with @cordme
-                if (currentServerId === 'dm' && currentChannelId === 'dm-cordme') {
-                    setTimeout(() => {
-                        db.messages[key].push({
-                            sender: '@cordme',
-                            text: `Hello ${currentUser}! I received your message: "${text}".`,
-                            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                        });
-                        saveDB();
-                        renderMessages();
-                    }, 1000);
-                }
             }
         }
 
-        // Server Dropdown & Modals
-        function toggleServerDropdown() {
-            if (currentServerId === 'dm') return;
-            const menu = document.getElementById('server-dropdown');
-            menu.classList.toggle('hidden');
-        }
+        function renderTubeMe() {
+            const grid = document.getElementById('tubeme-grid-container');
+            grid.innerHTML = '';
 
-        function openCreateServerModal() {
-            document.getElementById('create-server-modal').classList.remove('hidden');
-        }
-
-        function openJoinServerModal() {
-            document.getElementById('join-server-modal').classList.remove('hidden');
-        }
-
-        function openCreateChannelModal() {
-            document.getElementById('server-dropdown').classList.add('hidden');
-            document.getElementById('create-channel-modal').classList.remove('hidden');
-        }
-
-        function openInviteModal() {
-            document.getElementById('server-dropdown').classList.add('hidden');
-            document.getElementById('invite-code-display').value = currentServerId;
-            document.getElementById('invite-modal').classList.remove('hidden');
-        }
-
-        function closeModals() {
-            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
-            document.getElementById('server-dropdown').classList.add('hidden');
-        }
-
-        function submitCreateServer() {
-            const name = document.getElementById('new-server-name-input').value.trim();
-            const icon = document.getElementById('new-server-icon-input').value.trim();
-            if (!name) return;
-
-            const sId = 'server_' + Math.random().toString(36).substring(2, 9);
-            db.servers[sId] = {
-                id: sId,
-                name: name,
-                icon: icon,
-                owner: currentUser,
-                members: [currentUser],
-                channels: [
-                    { id: 'ch_' + Math.random().toString(36).substring(2, 6), name: 'general' }
-                ]
-            };
-
-            saveDB();
-            closeModals();
-            renderServersList();
-            switchToServer(sId);
-        }
-
-        function submitJoinServer() {
-            const code = document.getElementById('join-invite-input').value.trim();
-            if (!db.servers[code]) {
-                alert('Invalid invite code or server not found.');
-                return;
-            }
-
-            if (!db.servers[code].members.includes(currentUser)) {
-                db.servers[code].members.push(currentUser);
-                saveDB();
-            }
-
-            closeModals();
-            renderServersList();
-            switchToServer(code);
-        }
-
-        function submitCreateChannel() {
-            const name = document.getElementById('new-channel-name-input').value.trim();
-            if (!name || currentServerId === 'dm') return;
-
-            const chId = 'ch_' + Math.random().toString(36).substring(2, 6);
-            db.servers[currentServerId].channels.push({ id: chId, name: name });
-
-            saveDB();
-            closeModals();
-            switchToServer(currentServerId);
-        }
-
-        function leaveOrDeleteServer() {
-            if (currentServerId === 'dm') return;
-            const server = db.servers[currentServerId];
-            
-            if (server.owner === currentUser) {
-                delete db.servers[currentServerId];
-            } else {
-                server.members = server.members.filter(m => m !== currentUser);
-            }
-
-            saveDB();
-            closeModals();
-            switchToServer('dm');
-            renderServersList();
-        }
-
-        // Settings Suite
-        function openSettings() {
-            document.getElementById('settings-overlay').classList.remove('hidden');
-            switchSettingsTab('account');
-        }
-
-        function closeSettings() {
-            document.getElementById('settings-overlay').classList.add('hidden');
-            updateUserFooter();
-        }
-
-        function switchSettingsTab(tab) {
-            document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active'));
-            event && event.currentTarget && event.currentTarget.classList.add('active');
-
-            const container = document.getElementById('settings-content-container');
-            const user = db.users[currentUser];
-
-            if (tab === 'account') {
-                container.innerHTML = `
-                    <div class="settings-section-title">My Account</div>
-                    <div class="profile-card-edit">
-                        <div class="profile-banner-edit"></div>
-                        <div class="profile-body-edit">
-                            <div class="profile-avatar-large" style="background-image: url('${user.pfp}')"></div>
-                            <div style="margin-left: 96px;">
-                                <div style="font-size: 18px; font-weight: 700; color: white;">${user.username}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="input-group" style="margin-top: 20px;">
-                        <label>Change Profile Picture URL</label>
-                        <input type="text" id="settings-pfp-input" value="${user.pfp}" placeholder="https://...">
-                        <button class="btn-primary" style="margin-top: 10px;" onclick="updateProfilePic()">Save Changes</button>
-                    </div>
+            db.videos.forEach(v => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.innerHTML = `
+                    <div class="video-thumb" style="background-image: url('${v.thumb}')"></div>
+                    <div class="video-title">${v.title}</div>
+                    <div class="video-creator">${v.creator}</div>
                 `;
-            } else if (tab === 'profile') {
-                container.innerHTML = `
-                    <div class="settings-section-title">User Profile</div>
-                    <div class="input-group">
-                        <label>About Me / Bio</label>
-                        <input type="text" id="settings-bio-input" value="${user.bio || ''}" placeholder="Write something about yourself...">
-                        <button class="btn-primary" style="margin-top: 10px;" onclick="updateBio()">Save Bio</button>
-                    </div>
-                `;
-            } else if (tab === 'appearance') {
-                container.innerHTML = `
-                    <div class="settings-section-title">Appearance</div>
-                    <div style="color: var(--text-muted);">Theme mode is currently locked to Dark Discord Theme.</div>
-                `;
-            } else if (tab === 'voice') {
-                container.innerHTML = `
-                    <div class="settings-section-title">Voice & Video</div>
-                    <div style="color: var(--text-muted);">Default microphone and headset successfully configured.</div>
-                `;
-            }
+                grid.appendChild(card);
+            });
         }
 
-        function updateProfilePic() {
-            const newUrl = document.getElementById('settings-pfp-input').value.trim();
-            if (newUrl) {
-                db.users[currentUser].pfp = newUrl;
-                saveDB();
-                alert('Profile picture updated successfully!');
-                updateUserFooter();
-            }
-        }
-
-        function updateBio() {
-            const newBio = document.getElementById('settings-bio-input').value.trim();
-            db.users[currentUser].bio = newBio;
+        function publishVideoModal() {
+            const title = prompt('Enter video title:');
+            if (!title) return;
+            db.videos.unshift({
+                id: 'v_' + Math.random(),
+                title: title,
+                creator: currentUser,
+                thumb: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400'
+            });
             saveDB();
-            alert('Bio updated successfully!');
+            renderTubeMe();
         }
     </script>
 </body>
